@@ -4,19 +4,17 @@
 
 转自       [http://blog.csdn.net/kuring\_k/article/details/51872112](http://blog.csdn.net/kuring_k/article/details/51872112)
 
+## 问题：Storm是什么？为什么要用Storm？为什么不用Spark？
 
-
-Storm是什么？为什么要用Storm？为什么不用Spark？
-
-对于第一个问题，Storm是什么？
+### 对于第一个问题，Storm是什么？
 
 **Storm是基于数据流的实时处理系统，提供了大吞吐量的实时计算能力。通过数据入口获取每条到来的数据，在一条数据到达系统的时候，立即会在内存中进行相应的计算；Storm适合要求实时性较高的数据分析场景。**
 
-第二问题，为什么要用Storm？
+### 第二问题，为什么要用Storm？
 
 很多场景下，我们**希望系统能够实时的处理一条数据、甚至是事务。也就是说，在处理数据、事务的过程中，到达系统，并能马上得到结果。**其次，在成万上亿条数据大量涌入系统时，也要求“实时”的得到事务处理的结果。此时，单个节点已经是杯水车薪了，而**Storm的其中一个特点是它支持分布式并行计算**！如果说，你遇到了以上相似的场景，那Storm可以当仁不让的扛起实时处理的大旗！
 
-第三个问题，为什么不用Spark？
+### 第三个问题，为什么不用Spark？
 
 这个问题其实很难界定，因为Spark在RDD粒度上，可以满足实时计算的要求，当然，使用RDD还有其他优势；但总的来说，Storm 的实时性更强。其次，Storm的框架完全按照流式处理的思想构建，和项目场景结合性更强一些。（这是个人的一点看法，也许是因为本人Spark 用的不是很多的原因吧，欢迎吐槽。）
 
@@ -28,73 +26,41 @@ Hadoop、Storm系统和组件接口对比表：
 
 ![](http://img.blog.csdn.net/20160711162225804?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
 
-**Storm框架：**
+## **Storm框架：**
 
 ![](http://img.blog.csdn.net/20160711162247492?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
 
-上面这幅图是Stom框架图，和很多分布式系统一样，基于zk作为集群配置运行的元数据基础平台。
+上面这幅图是Stom框架图，和很多分布式系统一样，**基于zk（Zookeeper）作为集群配置运行的元数据基础平台**。
 
-nimbus和supervisor是服务器端守护进程，守护进程的文章会在
-
-[Storm概念、原理详解及其应用（二）Storm Cluster](http://blog.csdn.net/kuring_k/article/details/51887340)
-
-。
+nimbus和supervisor是服务器端守护进程，守护进程的文章会在[Storm概念、原理详解及其应用（二）Storm Cluster](http://blog.csdn.net/kuring_k/article/details/51887340)进行讲解。
 
 以下是对启动一个应用所需要的集群上JVM进程线程的简单介绍，建议记忆后再继续阅读。
 
-· Nodes （服务器）：指配置在一个 Storm 集群中的服务器，会执行 topology 的一部分
+**· Nodes （服务器）：指配置在一个 Storm 集群中的服务器，会执行 topology 的一部分运算。一个 Storm 集群可以包括一个或者多个工作 node 。**
 
-运算。一个 Storm 集群可以包括一个或者多个工作 node 。
+**· Workers （JVM 虚拟机）：指一个 node 上相互独立运行的 JVM 进程。每个 node 可以配置运行一个或者多个 worker 。一个topology 会分配到一个或者多个 worker 上运行。**
 
-· Workers （JVM 虚拟机）：指一个 node 上相互独立运行的 JVM 进程。每个 node 可
+**· Executor （线程）：指一个 worker 的jvm 进程中运行的 Java 线程。多个 task 可以指派给同一个 executer 来执行。除非是明确指定， Storm 默认会给每个 executor 分配一个 task。**
 
-以配置运行一个或者多个 worker 。一个topology 会分配到一个或者多个 worker 上
-
-运行。
-
-· Executor （线程）：指一个 worker 的jvm 进程中运行的 Java 线程。多个 task 可以
-
-指派给同一个 executer 来执行。除非是明确指定， Storm 默认会给每个 executor 分
-
-配一个 task。
-
-· Task （bolt/spout 实例）： task 是 spout 和bolt 的实例， 它们的 nextTuple\(\) 和
-
-execute\(\) 方法会被executors 线程调用执行。
+**· Task （bolt/spout 实例）： task 是 spout 和bolt 的实例， 它们的 nextTuple\(\) 和execute\(\) 方法会被executors 线程调用执行。**
 
 例如：
 
 ```
-
+builder.setSpout(spoutName, spout, spoutParallelism).setNumTasks(2)
 ```
 
-```
-builder.setSpout(
-spoutName
-, s
-pout
-, 
-spoutParallelism
-).setNumTasks(
-2
-)
-```
+这里可以定义spoutParallelism = 2，即对应两个executor线程，tasks为两个实例。（此处配置的原理，会在接下来会讲到worker和并发中解释。）
 
-这里可以定义spoutParallelism = 2，即对应两个executor线程，tasks为两个实例。
+可以看出，虽然在这设置了多个task实例，但是并行度并没有提高（而executor在不同的worker上执行，存在并行），因为只有两个线程去运行这些实例，只有设置足够多的线程和实例才可以真正的提高并行度；在这设置多个实例主要是为了下面执行rebalance的时候用到。
 
-（此处配置的原理，会在接下来会讲到worker和并发中解释。）
-
-可以看出，虽然在这设置了多个task实例，但是并行度并没有提高（而executor在不同的worker上执行，存在并行），因为只有两个线程去运行这些实例，只有设置足够多的线程和实例才可以真正的提高并行度；
-
-在这设置多个实例主要是为了下面执行rebalance的时候用到。
-
-为什么要用rebalance？
+### **为什么要用rebalance？**
 
 这里一直在启动、操作的是“线程”，真正的process需要在配置中设置worker数量，也就是说topology启动时已经决定了worker数量（即并行数量）。
 
 因为rebalance不需要修改代码，就可以动态修改topology的并行度，这样的话就必须提前配置好多个实例，在rebalance的时候主要是对之前设置多余的任务实例分配线程去执行。
 
-**在命令行动态修改并行度：**
+### **在命令行动态修改并行度：**
 
 除了使用代码进行调整，还可以在shell命令行下对并行度进行调整。
 
@@ -106,7 +72,7 @@ storm rebalance mytopology -w 10 -n 2 -e spout=2 -e bolt=2
 
 **概念：**
 
-**    
+**      
 **
 
 官方对于Storm下名词概念的解释如下：
@@ -181,7 +147,7 @@ Ps：Storm中的tuple是接口，没有具体实现，但原话这么解释的�
 
 _Storm needs to know how to serialize all the values in a tuple. By default, Storm _
 
-_    
+_      
 _
 
 _\* knows how to serialize the primitive types, strings, and byte arrays._
