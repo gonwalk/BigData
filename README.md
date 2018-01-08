@@ -28,7 +28,15 @@ Hadoop、Storm系统和组件接口对比表：
 
 ## **Storm框架：**
 
+先来看看Spark的架构，可以发现spark和Storm架构还是有很多相似的地方的。
+
+![](/assets/Spark架构图.png)
+
+                                                                                    Spark架构图：出自《Spark大数据处理》
+
 ![](http://img.blog.csdn.net/20160711162247492?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
+
+                                                                                                             Storm框架图
 
 上面这幅图是Stom框架图，和很多分布式系统一样，**基于zk（Zookeeper）作为集群配置运行的元数据基础平台**。
 
@@ -58,7 +66,7 @@ builder.setSpout(spoutName, spout, spoutParallelism).setNumTasks(2)
 
 这里一直在启动、操作的是“线程”，真正的process需要在配置中设置worker数量，也就是说topology启动时已经决定了worker数量（即并行数量）。
 
-因为rebalance不需要修改代码，就可以动态修改topology的并行度，这样的话就必须提前配置好多个实例，在rebalance的时候主要是对之前设置多余的任务实例分配线程去执行。
+_因为rebalance不需要修改代码，就可以动态修改topology的并行度，这样的话就必须提前配置好多个实例，在rebalance的时候主要是对之前设置多余的任务实例分配线程去执行。_
 
 ### **在命令行动态修改并行度：**
 
@@ -70,12 +78,9 @@ storm rebalance mytopology -w 10 -n 2 -e spout=2 -e bolt=2
 
 注意：并行度主要就是调整executor的数量，但是调整之后的executor的数量必须小于等于task的数量，如果分配的executor的线程数比task数量多的话也只能分配和task数量相等的executor。
 
-**概念：**
+## **概念：   **
 
-**      
-**
-
-官方对于Storm下名词概念的解释如下：
+官方对于下列Storm名词概念的解释如下：
 
 1、Topologies
 
@@ -93,28 +98,17 @@ storm rebalance mytopology -w 10 -n 2 -e spout=2 -e bolt=2
 
 8、Workers
 
-1、Topologies（拓扑）
+### 1、Topologies（拓扑）
 
-Topology是Storm中实时应用的一种封装。
+Topology是Storm中实时应用的一种封装。其功能 analogous（模拟的，类似的） to a MapReduce job类似于MapReduce 的job，但唯一不同的是它是循环执行的——无数据流等待，有数据流执行，直到被kill progress。
 
-其功能 analogous to a MapReduce
-
-job
-
-，但唯一不同的是它是循环执行的——无数据流等待，有数据流执行，直到被kill progress。
-
-一个Topology是spouts和bolts组成并被Stream groupings连接的一副流程图，相关概念如下：
+一个Topology是由spouts和bolts组成并被Stream groupings连接的一副流程图，相关概念如下：
 
 Resources:
 
-* [TopologyBuilder](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/TopologyBuilder.html)
-  : use this class to construct topologies in Java：在java中，该类构建了topologies。
-* [Running topologies on a production cluster](http://storm.apache.org/releases/1.0.0/Running-topologies-on-a-production-cluster.html)
-  ：
-  在生产集群中，
-  运行多个topologies。
-* [Local mode](http://storm.apache.org/releases/1.0.0/Local-mode.html)
-  : Read this to learn how to develop and test topologies in local mode. 在本地模型中开发和测试topologies。
+* [TopologyBuilder](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/TopologyBuilder.html): use this class to construct topologies in Java：在java中，该类构建了topologies。
+* [Running topologies on a production cluster](http://storm.apache.org/releases/1.0.0/Running-topologies-on-a-production-cluster.html)：在生产集群中，运行多个topologies。
+* [Local mode](http://storm.apache.org/releases/1.0.0/Local-mode.html): Read this to learn how to develop and test topologies in local mode. 在本地模型中开发和测试topologies。
 
 Topology结构：
 
@@ -122,35 +116,21 @@ Topology结构：
 
 2、Streams （流）
 
-Stream在Storm中是一个核心的抽象概念。一个流是由无数个元组序列构成，这些元组并行、分布式的被创建和执行。
+**Stream在Storm中是一个核心的抽象概念。一个流是由无数个元组序列构成，这些元组并行、分布式的被创建和执行。**
 
-在stream的许多元组中，Streams被定义为以Fields区域命名的一种模式。默认情况下，元组支持：
+在stream的许多元组中，Streams被定义为以Fields区域命名的一种模式。默认情况下，**元组支持：integers, longs, shorts, bytes, strings, doubles, floats, booleans, and byte arrays**. 你也可以定义自己的序列化器，使这种风格类型能够被自然的使用在元组中。
 
-integers, longs, shorts, bytes, strings, doubles, floats, booleans, and byte arrays. 你也可以定义自己的序列化器，使这种风格类型能够被自然的使用在元组中。
-
-每一个Stream在声明的时候都会赋予一个id。单个Stream——spouts和bolts，可以使用
-
-[OutputFieldsDeclarer](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html)
-
-的convenience方法声明一个stream，而不用指定一个id。但是这种方法会给予一个默认的id——default，相关概念如下：
+每一个Stream在声明的时候都会赋予一个id。单个Stream——spouts和bolts，可以使用[OutputFieldsDeclarer](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html)的convenience方法声明一个stream，而不用指定一个id。但是这种方法会给予一个默认的id——default，相关概念如下：
 
 Resources:
 
-* [Tuple](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/tuple/Tuple.html)
-  : streams are composed of tuples：Tuple是一个interface，对应的实现类 TupleImpl。
-* [OutputFieldsDeclarer](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html)
-  : used to declare streams and their schemas
-* [Serialization](http://storm.apache.org/releases/1.0.0/Serialization.html)
-  : Information about Storm's dynamic typing of tuples and declaring custom serializations
+* [Tuple](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/tuple/Tuple.html): streams are composed of tuples：Tuple是一个interface，对应的实现类 TupleImpl。
+* [OutputFieldsDeclarer](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html): used to declare streams and their schemas
+* [Serialization](http://storm.apache.org/releases/1.0.0/Serialization.html): Information about Storm's dynamic typing of tuples and declaring custom serializations
 
-Ps：Storm中的tuple是接口，没有具体实现，但原话这么解释的：
+Ps：Storm中的tuple是接口，没有具体实现，但原话是这么解释的：
 
-_Storm needs to know how to serialize all the values in a tuple. By default, Storm _
-
-_      
-_
-
-_\* knows how to serialize the primitive types, strings, and byte arrays._
+_Storm needs to know how to serialize all the values in a tuple. By default, Storm \* knows how to serialize the primitive types, strings, and byte arrays._
 
 3、Spouts
 
@@ -529,4 +509,10 @@ collector.emit\(tuple, new Values\(word\)\); 并且需要调用一次this.collec
 内容有不妥的地方，希望大家指正，希望能一起进步，文笔欠佳，见谅。
 
 此处配置的原理，会在接下来会讲到worker和并发解释。
+
+
+
+另附，浅谈Storm流式处理框架 - fanyun的博客 - CSDN博客 http://blog.csdn.net/fanyun\_01/article/details/50921678
+
+这篇文章的Storm的架构、处理流程的图解比较容易理解。
 
