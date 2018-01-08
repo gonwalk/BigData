@@ -32,11 +32,15 @@ Hadoop、Storm系统和组件接口对比表：
 
 ![](/assets/Spark架构图.png)
 
-                                                                                    Spark架构图：出自《Spark大数据处理》
+```
+                                                                                Spark架构图：出自《Spark大数据处理》
+```
 
 ![](http://img.blog.csdn.net/20160711162247492?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
 
-                                                                                                             Storm框架图
+```
+                                                                                                         Storm框架图
+```
 
 上面这幅图是Stom框架图，和很多分布式系统一样，**基于zk（Zookeeper）作为集群配置运行的元数据基础平台**。
 
@@ -114,7 +118,7 @@ Topology结构：
 
 ![](http://img.blog.csdn.net/20160711162446026?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
 
-2、Streams （流）
+### 2、Streams （流）
 
 **Stream在Storm中是一个核心的抽象概念。一个流是由无数个元组序列构成，这些元组并行、分布式的被创建和执行。**
 
@@ -132,160 +136,54 @@ Ps：Storm中的tuple是接口，没有具体实现，但原话是这么解释�
 
 _Storm needs to know how to serialize all the values in a tuple. By default, Storm \* knows how to serialize the primitive types, strings, and byte arrays._
 
-3、Spouts
+### 3、Spouts
 
-在Topology中，每个Spout都是一个Streams源，通常情况下，Spouts会从外部源读取Tuple，并输入这些Tuple到Topology中
+**在Topology中，每个Spout都是一个Streams源，通常情况下，Spouts会从外部源读取Tuple，并输入这些Tuple到Topology中。**
 
-。
+**Spouts既是可靠的又是不可靠的，因为，可靠的spout会在发送Tuple失败的情况下，重复发送；相反，不可靠的spout会忘记它发送过的Tuple，无论是否成功。**
 
-Spouts既是可靠的又是不可靠的
+#### Spout代码过程：
 
-，因为，可靠的spout会在发送Tuple失败的情况下，重复发送；相反，不可靠的spout会忘记它发送过的Tuple，无论是否成功。
+Spouts能够发送多个流：使用[OutputFieldsDeclarer](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html) \(interface\)的`declareStream`方法声明多个流，并且当用[SpoutOutputCollector](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/spout/SpoutOutputCollector.html)
 
-Spout代码过程：
+（实现2，接口模式）的emit方法可以指定这个流去发送Tuple。Spouts的主要方法之一是：nextTuple\(\) 发送tuple，nextTuple可以发送一个新的Tuple到Topology，或者当没有新的Tuple被发送的时候，就简单的返回。
 
-Spouts能够发送多个流：使用
-
-[OutputFieldsDeclarer](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html)
-
-\(interface\)
-
-的
-
-`declareStream`
-
-方法声明多个流，并且当使用
-
-[SpoutOutputCollector](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/spout/SpoutOutputCollector.html)
-
-（实现2，接口模式）
-
-的emit方法可以
-
-指定这个流去发送Tuple。
-
-Spouts的主要方法之一是：
-
-nextTuple\(\) 发送tuple
-
-，nextTuple可以发送一个新的Tuple到Topology，或者当没有新的Tuple被发送的时候，就简单的返回。
-
-对于任何spout的实现，
-
-nextTuple都不能阻塞，因为Storm调用的所有spout都是基于同一个线程！
-
-其次是 ack 和 fail 方法，
-
-它们都会被调用，
-
-当Storm发现一个tuple被从spout发射后，要么成功地完成的通过topology，要么错误的完成。ack 和 fail 方法只有在可靠的spouts下才能被调用。spout可靠性，请搜本页下面内容，或移至代码。
+**对于任何spout的实现，nextTuple都不能阻塞，因为Storm调用的所有spout都是基于同一个线程！**其次是 ack 和 fail 方法，它们都会被调用，当Storm发现一个tuple被从spout发射后，要么成功地完成的通过topology，要么错误的完成。ack 和 fail 方法只有在可靠的spouts下才能被调用。spout可靠性，请搜本页下面内容，或移至代码。
 
 Resources:
 
-* [IRichSpout](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/IRichSpout.html)
-  : this is the interface that spouts must implement.
+* [IRichSpout](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/IRichSpout.html): this is the interface that spouts must implement.
 * [Guaranteeing message processing](http://storm.apache.org/releases/1.0.0/Guaranteeing-message-processing.html)
 
-Ps：nextTuple\(\)方法中会发送Tuple，至于那种对象能发送，请看上述。
+Ps：nextTuple\(\)方法中会发送Tuple，至于哪种对象能发送，请看上述。
 
-Qu：
-
-1、在代码中如何让声明的留和发送tuple联系起来，因为声明流的名称并不是tuple对象名？
+Qu：1、在代码中如何让声明的流和发送的tuple联系起来，因为声明流的名称并不是tuple对象名？
 
 2、是Storm中Spout的nextTuple对应一个线程，还是多个Spout对应一个线程？
 
-answer：在集群中，应该是每个node的JVM中启动一个线程跑spout
+answer：**在集群中，应该是每个node的JVM中启动一个线程跑spout**
 
-4、Bolts
+### 4、Bolts
 
-在Topologies中所有的处理都会在bolts中被执行，它能够
+在Topologies中所有的处理都会在bolts中被执行，它能够过滤tuple、函数操作、合并（连接join、聚合aggregation）、数据库读写
 
-过滤tuple、
+等。Bolt可以做复杂的流传输，需要多步骤、多bolt的连接。Bolt也可以发射出一个或多个流，它需要使用[OutputFieldsDeclarer](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html)类的
 
-函数操作、合并
+`declareStream方法 来`声明多个流，并且需要指定这个流去使用OutputCollectorl类的`emit方法去`发射。
 
-（连接join、聚合aggregation）
+**当你声明一个bolt的输入流时，你需要订阅一个指定的其他组件的流。**每一个流的订阅都是一个个添加。[InputDeclarer](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/InputDeclarer.html)类可以声明一个流在默认的流id上。`declarer.shuffleGrouping("1")说明在组件“1”上订阅了这个默认流，等价于declarer.shuffleGrouping("1", DEFAULT_STREAM_ID)。`
 
-、数据库读写
+Bolts的主要方法是`execute`方法，它会吸收作为输入的一个新Tuple。Bolts使用[OutputCollector](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/task/OutputCollector.html)对象发射新的Tuples。Bolts必须对每一个tuple调用`OutputCollector`的`ack`方法，以便于Storm知道什么时候元组们被处理完成（可以最终确定它的安全对于包装这个初始化spout tuples）。共同处理一个输入元组的情况下,发射0或多个元组们基于元组，然后包装输入元组，Storm提供一个
 
-等。Bolt可以做复杂的流传输，需要多步骤、多bolt的连接。
+[IBasicBolt](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/IBasicBolt.html)接口的自动包装。
 
-Bolt也可以发射出一个或多个流，它需要使用
-
-[OutputFieldsDeclarer](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html)
-
-类的
-
-`declareStream`
-
-`方法`
-
-声明多个流，并且需要指定这个流去使用
-
-OutputCollector
-
-l类的
-
-`emit`
-
-`方法去`
-
-发射。
-
-当你声明一个bolt的输入流时，你需要订阅一个指定的其他组件的流。
-
-每一个流的订阅都是一个个添加。
-
-[InputDeclarer](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/InputDeclarer.html)
-
-类可以声明一个流在默认的流id上。
-
-`declarer.shuffleGrouping("1")`
-
-`说明在组件“1”上订阅了这个默认流，等价于`
-
-`declarer.shuffleGrouping("1", DEFAULT_STREAM_ID)。`
-
-Bolts的主要
-
-方法是
-
-`execute`
-
-方法，它会吸收作为输入的一个新Tuple。Bolts使用
-
-[OutputCollector](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/task/OutputCollector.html)
-
-对象发射新的Tuples。Bolts必须对每一个tuple调用
-
-`OutputCollector`
-
-的
-
-`ack`
-
-方法，以便于Storm知道什么时候元组们被处理完成（可以最终确定它的安全对于包装这个初始化spout tuples）。
-
-共同处理一个输入元组的情况下,发射0或多个元组们基于元组，然后包装输入元组，Storm提供一个
-
-[IBasicBolt](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/IBasicBolt.html)
-
-接口的自动包装。
-
-在Bolts异步处理的时候，完全可以启动新线程；同时
-
-[OutputCollector](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/task/OutputCollector.html)
-
-是线程安全的，可以在任何时候被调用。
+在Bolts异步处理的时候，完全可以启动新线程；同时[OutputCollector](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/task/OutputCollector.html)是线程安全的，可以在任何时候被调用。
 
 Resources:
 
-* [IRichBolt](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/IRichBolt.html)
-  : this is general interface for bolts.
-* [IBasicBolt](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/IBasicBolt.html)
-  : this is a convenience interface for defining bolts that do filtering or simple functions.
-* [OutputCollector](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/task/OutputCollector.html)
-  : bolts emit tuples to their output streams using an instance of this class
+* [IRichBolt](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/IRichBolt.html): this is general interface for bolts.
+* [IBasicBolt](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/topology/IBasicBolt.html): this is a convenience interface for defining bolts that do filtering or simple functions.
+* [OutputCollector](http://storm.apache.org/releases/1.0.0/javadocs/org/apache/storm/task/OutputCollector.html): bolts emit tuples to their output streams using an instance of this class
 * [Guaranteeing message processing](http://storm.apache.org/releases/1.0.0/Guaranteeing-message-processing.html)
 
 Ps：bolt发送或接收的数据流都可以多对多的进行。
@@ -294,11 +192,7 @@ Ps：bolt发送或接收的数据流都可以多对多的进行。
 
 5、Stream groupings 流分组
 
-定义一个拓扑部分是指定了每个bolt门闩的流都应该作为输入被接收。一个流分组定义为：
-
-在门闩的任务之中如何区分流
-
-。
+**定义一个拓扑部分是指定了每个bolt门闩的流都应该作为输入被接收。一个流分组定义为：在bolt门闩的任务之中如何区分流。**
 
 在Storm中有8种流分组方式，通过实现
 
@@ -510,9 +404,8 @@ collector.emit\(tuple, new Values\(word\)\); 并且需要调用一次this.collec
 
 此处配置的原理，会在接下来会讲到worker和并发解释。
 
-
-
-另附，浅谈Storm流式处理框架 - fanyun的博客 - CSDN博客 http://blog.csdn.net/fanyun\_01/article/details/50921678
+另附，浅谈Storm流式处理框架 - fanyun的博客 - CSDN博客  
+ [http://blog.csdn.net/fanyun\_01/article/details/50921678](http://blog.csdn.net/fanyun_01/article/details/50921678)
 
 这篇文章的Storm的架构、处理流程的图解比较容易理解。
 
