@@ -198,23 +198,13 @@ Ps：bolt发送或接收的数据流都可以多对多的进行。
 
 Storm 定义了八种内置数据流分组的方式：
 
-1、Shuffle grouping（随机分组）：这种方式会随机分发 tuple 给bolt 的各个 task，每个bolt 实例接收到的相同数量的 tuple 。
+1、Shuffle grouping（随机分组）：这种方式会随机分发 tuple 给bolt 的各个 task，每个bolt 实例接收到相同数量的 tuple 。
 
-2、Fields grouping（按字段分组）：根据指定字段的值进行分组。比如说，一个数据流根据“ word”字段进行分组，
-
-所有具有相同“ word ”字段值的 tuple 会路由到同一个 bolt 的 task 中
-
-。
+2、Fields grouping（按字段分组）：根据指定字段的值进行分组。比如说，一个数据流根据“ word”字段进行分组，所有具有相同“ word ”字段值的 tuple 会路由到同一个 bolt 的 task 中。
 
 3、All grouping（全复制分组）：将所有的 tuple 复制后分发给所有 bolt task。每个订阅数据流的 task 都会接收到 tuple 的拷贝。
 
-4、Globle grouping（全局分组）：这种分组方式将所有的 tuples 路由到唯一一个 task 上。Storm 按照最小的 task ID 来选取接收数据的 task 。注意，当使用全局分组方式时，
-
-设置 bolt 的 task 并发度是没有意义的（spout并发有意义）
-
-，因为所有 tuple 都转发到同一个 task 上了。使用全局分组的时候需要注意，因为所有的 tuple 都转发到一个 JVM 实例上，
-
-可能会引起 Storm 集群中某个 JVM 或者服务器出现性能瓶颈或崩溃。
+4、Globle grouping（全局分组）：这种分组方式将所有的 tuples 路由到唯一一个 task 上。Storm 按照最小的 task ID 来选取接收数据的 task 。注意，当使用全局分组方式时，设置 bolt 的 task 并发度是没有意义的（spout并发有意义），因为所有 tuple 都转发到同一个 task 上了。使用全局分组的时候需要注意，因为所有的 tuple 都转发到一个 JVM 实例上，可能会引起 Storm 集群中某个 JVM 或者服务器出现性能瓶颈或崩溃。
 
 5、None grouping（不分组）：在功能上和随机分组相同，是为将来预留的。
 
