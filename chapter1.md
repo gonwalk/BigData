@@ -106,7 +106,7 @@
                      <version>0.6.0</version>
                  </dependency>
              </dependencies>
-    </project>  
+    </project>
 ```
 
 开头几行指定了工程名称和版本号。然后我们添加了一个编译器插件，告知 Maven 我们的代码要用 Java1.6 编译。接下来我们定义了 Maven 仓库（Maven 支持为同一个工程指定多个仓库）。clojars 是存放 Storm 依赖的仓库。Maven 会为运行本地模式自动下载必要的所有子包依赖。
