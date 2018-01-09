@@ -24,7 +24,7 @@
 
 我们在这个工程里创建一个简单的拓扑，数单词数量。我们可以把这个看作 Storm 的 “Hello World”。不过，这是一个非常强大的拓扑，因为它能够扩展到几乎无限大的规模，而且只需要做一些小修改，就能用它构建一个统计系统。举个例子，我们可以修改一下工程用来找出 Twitter 上的热点话题。
 
-要创建这个拓扑，我们要用一个 spout 读取文本，第一个 bolt 用来标准化单词，第二个 bolt 为单词计数，如图2-1所示。
+要创建这个拓扑，我们要用一个 spout 读取文本，第一个 bolt 用来标准化单词，第二个 bolt 为单词计数，如图1-1所示。
 
 ![](http://wiki.jikexueyuan.com/project/storm/images/03.png)
 
@@ -128,17 +128,17 @@ java 目录下的子目录包含我们的代码，我们把要统计单词数的
 
 我们将为运行单词计数创建所有必要的类。
 
-#### 1.2.3.1Spout
+#### 1.2.3.1  Spout
 
-pout WordReader 类实现了 IRichSpout 接口。我们将在第四章看到更多细节。WordReader负责从文件按行读取文本，并把文本行提供给第一个 bolt。
+ WordReader 类实现了 IRichSpout 接口。**WordReader负责从文件按行读取文本，并把文本行提供给第一个 bolt。**
 
-**NOTE**: 一个 spout 发布一个定义域列表。这个架构允许你使用不同的 bolts 从同一个spout 流读取数据，它们的输出也可作为其它 bolts 的定义域，以此类推。
+**NOTE**:** 一个 spout 发布一个定义域列表。这个架构允许你使用不同的 bolts 从同一个spout 流读取数据，它们的输出也可作为其它 bolts 的定义域**，以此类推。
 
-例2-1包含 WordRead 类的完整代码（我们将会分析下述代码的每一部分）。
+例1-1包含 WordRead 类的完整代码（我们将会分析下述代码的每一部分）。
 
 ```
        /**
-         *  例2-1.src/main/java/spouts/WordReader.java
+         *  例1-1.src/main/java/spouts/WordReader.java
          */
         package spouts;
 
@@ -219,11 +219,10 @@ pout WordReader 类实现了 IRichSpout 接口。我们将在第四章看到更�
         }
 ```
 
-第一个被调用的 spout 方法都是**public void open\(Map conf, TopologyContext context, SpoutOutputCollector collector**\)。它接收如下参数：配置对象，在定义topology 对象是创建；TopologyContext 对象，包含所有拓扑数据；还有SpoutOutputCollector 对象，它能让我们发布交给 bolts 处理的数据。下面的代码主是这个方法的实现。
+第一个被调用的 spout 方法都是**public void open\(Map conf, TopologyContext context, SpoutOutputCollector collector**\)。它接收如下参数：配置对象，在定义topology 对象时创建；TopologyContext 对象，包含所有拓扑数据；还有SpoutOutputCollector 对象，它能让我们发布交给 bolts 处理的数据。下面的代码是这个方法的实现。
 
 ```
-    public void open(Map conf, TopologyContext context,
-        SpoutOutputCollector collector) {
+    public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         try {
             this.context = context;
             this.fileReader = new FileReader(conf.get("wordsFile").toString());
@@ -260,23 +259,23 @@ pout WordReader 类实现了 IRichSpout 接口。我们将在第四章看到更�
     }
 ```
 
-**NOTE**: Values 是一个 ArrarList 实现，它的元素就是传入构造器的参数。
+**NOTE**: Values \(\)是一个 ArrarList 实现，它的元素就是传入构造器的参数。
 
-**nextTuple\(\)**会在同一个循环内被**ack\(\)**和**fail\(\)**周期性的调用。没有任务时它必须释放对线程的控制，其它方法才有机会得以执行。因此 nextTuple 的第一行就要检查是否已处理完成。如果完成了，为了降低处理器负载，会在返回前休眠一毫秒。如果任务完成了，文件中的每一行都已被读出并分发了。
+**nextTuple\(\)会在同一个循环内被ack\(\)和fail\(\)周期性的调用。没有任务时它必须释放对线程的控制，其它方法才有机会得以执行。因此 nextTuple 的第一行就要检查是否已处理完成。如果完成了，为了降低处理器负载，会在返回前休眠一毫秒。如果任务完成了，文件中的每一行都已被读出并分发了。**
 
-**NOTE**:元组\(tuple\)是一个具名值列表，它可以是任意 java 对象（只要它是可序列化的）。默认情况，Storm 会序列化字符串、字节数组、ArrayList、HashMap 和 HashSet 等类型。
+**NOTE**: 元组\(tuple\)是一个具名值列表，它可以是任意 java 对象（只要它是可序列化的）。默认情况，Storm 会序列化字符串、字节数组、ArrayList、HashMap 和 HashSet 等类型。
 
-#### 1.2.3.2Bolts
+#### 1.2.3.2 Bolts
 
-现在我们有了一个 spout，用来按行读取文件并每行发布一个_元组_，还要创建两个 bolts，用来处理它们（看图2-1）。_bolts_实现了接口**backtype.storm.topology.IRichBolt**。
+现在我们有了一个 spout，用来按行读取文件并每行发布一个_元组_，还要创建两个 bolts，用来处理它们（看图1-1）。_bolts_实现了接口**backtype.storm.topology.IRichBolt**。
 
 _bolt_最重要的方法是**void execute\(Tuple input\)**，每次接收到元组时都会被调用一次，还会再发布若干个元组。
 
-**NOTE**: 只要必要，bolt 或 spout 会发布若干元组。当调用**nextTuple**或**execute**方法时，它们可能会发布0个、1个或许多个元组。你将在第五章学习更多这方面的内容。
+**NOTE**: 如果有必要，bolt 或 spout 会发布若干元组。当调用**nextTuple**或**execute**方法时，它们可能会发布0个、1个或许多个元组。
 
-第一个 bolt，**WordNormalizer**，负责得到并标准化每行文本。它把文本行切分成单词，大写转化成小写，去掉头尾空白符。
+第一个 bolt，**WordNormalizer**，**负责得到并标准化每行文本。它把文本行切分成单词，大写转化成小写，去掉头尾空白符。**
 
-首先我们要声明 bolt 的出参：
+首先我们要声明 bolt 的参数：
 
 ```
     public void declareOutputFields(OutputFieldsDeclarer declarer){
@@ -307,10 +306,10 @@ _bolt_最重要的方法是**void execute\(Tuple input\)**，每次接收到元�
 
 第一行从元组读取值。值可以按位置或名称读取。接下来值被处理并用collector对象发布。最后，每次都调用collector 对象的**ack\(\)**方法确认已成功处理了一个元组。
 
-例2-2是这个类的完整代码。
+例1-2是这个类的完整代码。
 
 ```
-    //例2-2 src/main/java/bolts/WordNormalizer.java
+    //例1-2 src/main/java/bolts/WordNormalizer.java
     package bolts;
     import java.util.ArrayList;
     import java.util.List;
@@ -322,12 +321,14 @@ _bolt_最重要的方法是**void execute\(Tuple input\)**，每次接收到元�
     import backtype.storm.tuple.Fields;
     import backtype.storm.tuple.Tuple;
     import backtype.storm.tuple.Values;
+    
     public class WordNormalizer implements IRichBolt{
         private OutputCollector collector;
         public void cleanup(){}
         /**
           * *bolt*从单词文件接收到文本行，并标准化它。
           * 文本行会全部转化成小写，并切分它，从中得到所有单词。
+          * 把文本行切分成单词，大写转化成小写，去掉头尾空白符
          */
         public void execute(Tuple input){
             String sentence = input.getString(0);
@@ -358,7 +359,7 @@ _bolt_最重要的方法是**void execute\(Tuple input\)**，每次接收到元�
     }
 ```
 
-**NOTE**:通过这个例子，我们了解了在一次**execute**调用中发布多个元组。如果这个方法在一次调用中接收到句子 “This is the Storm book”，它将会发布五个元组。
+**NOTE**: 通过这个例子，我们了解了在一次**execute**调用中发布多个元组。如果这个方法在一次调用中接收到句子 “This is the Storm book”，它将会发布五个元组。
 
 下一个_bolt_，**WordCounter**，负责为单词计数。这个拓扑结束时（**cleanup\(\)**方法被调用时），我们将显示每个单词的数量。
 
@@ -378,11 +379,7 @@ import backtype.storm.tuple.Tuple;
 public class WordCounter implements IRichBolt{
     Integer id;
     String name;
-    Map
-<
-String,Integer
->
- counters;
+    Map<String,Integer> counters;
     private OutputCollector collector;
 
     /**
@@ -391,11 +388,7 @@ String,Integer
     @Override
     public void cleanup(){
         System.out.println("-- 单词数 【"+name+"-"+id+"】 --");
-        for(Map.Entry
-<
-String,Integer
->
- entry : counters.entrySet()){
+        for(Map.Entry<String,Integer>entry : counters.entrySet()){
             System.out.println(entry.getKey()+": "+entry.getValue());
         }
     }
@@ -424,11 +417,7 @@ String,Integer
      */
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector){
-        this.counters = new HashMap
-<
-String, Integer
->
-();
+        this.counters = new HashMap<String, Integer>();
         this.collector = collector;
         this.name = context.getThisComponentId();
         this.id = context.getThisTaskId();
@@ -439,13 +428,13 @@ String, Integer
 }
 ```
 
-execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调用**clearup\(\)**方法打印计数器 map。（虽然这只是一个例子，但是通常情况下，当拓扑关闭时，你应当使用**cleanup\(\)**方法关闭活动的连接和其它资源。）
+**execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调用clearup\(\)方法打印计数器 map。（虽然这只是一个例子，但是通常情况下，当拓扑关闭时，你应当使用cleanup\(\)方法关闭活动的连接和其它资源。）**
 
 ### 1.2.4编写主类
 
-你可以在主类中创建拓扑和一个本地集群对象，以便于在本地测试和调试。**LocalCluster**可以通过**Config**对象，让你尝试不同的集群配置。比如，当使用不同数量的工作进程测试你的拓扑时，如果不小心使用了某个全局变量或类变量，你就能够发现错误。（更多内容请见第三章）
+你可以在主类中创建拓扑和一个本地集群对象，以便于在本地测试和调试。**LocalCluster**可以通过**Config**对象，让你尝试不同的集群配置。比如，当使用不同数量的工作进程测试你的拓扑时，如果不小心使用了某个全局变量或类变量，你就能够发现错误。
 
-**NOTE**：所有拓扑节点的各个进程必须能够独立运行，而不依赖共享数据（也就是没有全局变量或类变量），因为当拓扑运行在真实的集群环境时，这些进程可能会运行在不同的机器上。
+**NOTE**：**所有拓扑节点的各个进程必须能够独立运行，而不依赖共享数据（也就是没有全局变量或类变量），因为当拓扑运行在真实的集群环境时，这些进程可能会运行在不同的机器上。**
 
 接下来，**TopologyBuilder**将用来创建拓扑，它决定 Storm 如何安排各节点，以及它们交换数据的方式。
 
@@ -479,10 +468,10 @@ execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调�
 
 调用**createTopology**和**submitTopology**，运行拓扑，休眠两秒钟（拓扑在另外的线程运行），然后关闭集群。
 
-例2-3是完整的代码
+例1-3是完整的代码
 
 ```
-    //例2-3 src/main/java/TopologyMain.java
+    //例1-3 src/main/java/TopologyMain.java
     import spouts.WordReader;
     import backtype.storm.Config;
     import backtype.storm.LocalCluster;
