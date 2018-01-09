@@ -130,7 +130,7 @@ java 目录下的子目录包含我们的代码，我们把要统计单词数的
 
 #### 1.2.3.1  Spout
 
- WordReader 类实现了 IRichSpout 接口。**WordReader负责从文件按行读取文本，并把文本行提供给第一个 bolt。**
+WordReader 类实现了 IRichSpout 接口。**WordReader负责从文件按行读取文本，并把文本行提供给第一个 bolt。**
 
 **NOTE**:** 一个 spout 发布一个定义域列表。这个架构允许你使用不同的 bolts 从同一个spout 流读取数据，它们的输出也可作为其它 bolts 的定义域**，以此类推。
 
@@ -321,7 +321,7 @@ _bolt_最重要的方法是**void execute\(Tuple input\)**，每次接收到元�
     import backtype.storm.tuple.Fields;
     import backtype.storm.tuple.Tuple;
     import backtype.storm.tuple.Values;
-    
+
     public class WordNormalizer implements IRichBolt{
         private OutputCollector collector;
         public void cleanup(){}
@@ -445,7 +445,7 @@ public class WordCounter implements IRichBolt{
     builder.setBolt("word-counter", new WordCounter()).shuffleGrouping("word-normalizer");
 ```
 
-在_spout_和_bolts_之间通过**shuffleGrouping**方法连接。这种分组方式决定了 Storm 会以随机分配方式从源节点向目标节点发送消息。
+**在**_**spout**_**和**_**bolts**_**之间通过shuffleGrouping方法连接。这种分组方式决定了 Storm 会以随机分配方式从源节点向目标节点发送消息。**
 
 下一步，创建一个包含拓扑配置的**Config**对象，它会在运行时与集群配置合并，并通过prepare 方法发送给所有节点。
 
@@ -494,7 +494,7 @@ public class WordCounter implements IRichBolt{
             conf.setDebug(false);
 
         //运行拓扑
-             conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 1);
+            conf.put(Config.TOPOLOGY_MAX_SPOUT_PENDING, 1);
             LocalCluster cluster = new LocalCluster();
             cluster.submitTopology("Getting-Started-Topologie", conf, builder.createTopology();
             Thread.sleep(1000);
