@@ -73,7 +73,7 @@
              <groupId>storm.book</groupId>
              <artifactId>Getting-Started</artifactId>
              <version>0.0.1-SNAPSHOT</version>
-             
+
              <build>
                  <plugins>
                      <plugin>
@@ -98,16 +98,28 @@
              <dependencies>
                  <!-- Storm Dependency -->
                  <dependency>
-            	      <groupId>org.apache.storm</groupId>
-            	      <artifactId>storm-core</artifactId>
-            	      <version>0.9.6</version>
-            	      <scope>provided</scope>
-            	</dependency>
+                      <groupId>org.apache.storm</groupId>
+                      <artifactId>storm-core</artifactId>
+                      <version>0.9.6</version>
+                      <scope>provided</scope>
+                </dependency>
              </dependencies>
     </project>
 ```
 
 开头几行指定了工程名称和版本号。然后我们添加了一个编译器插件，告知 Maven 我们的代码要用** Java1.6 编译**。接下来我们定义了 Maven 仓库（Maven 支持为同一个工程指定多个仓库）。clojars 是存放 Storm 依赖的仓库。Maven 会为运行本地模式自动下载必要的所有子包依赖。
+
+其实，（亲测）只需要添加下面的一个依赖就行：
+
+```
+<dependency>
+    <groupId>org.apache.storm</groupId>
+    <artifactId>storm-core</artifactId>
+    <version>0.9.6</version>
+    <scope>provided</scope>
+</dependency>
+
+```
 
 一个典型的 Maven Java 工程会拥有如下结构：
 
