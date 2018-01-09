@@ -47,7 +47,7 @@
 
 如果不是上述内容，检查你的 Java 安装情况。（参考[http://www.java.com/download/](http://www.java.com/download/)）
 
-## 1.2.2创建工程 {#f5050010b25ae5ffc86d2048c357a9c9}
+## 1.2.2创建maven工程 {#f5050010b25ae5ffc86d2048c357a9c9}
 
 开始之前，先为这个应用建一个目录（就像你平常为 Java 应用做的那样）。这个目录用来存放工程源码。
 
@@ -124,11 +124,11 @@ java 目录下的子目录包含我们的代码，我们把要统计单词数的
 
 **NOTE**：命令 mkdir -p 会创建所有需要的父目录。
 
-## 创建我们的第一个 Topology {#a836d0e8cb9f8ca38876b1aa067865d6}
+### 1.2.3创建我们的第一个 Topology
 
 我们将为运行单词计数创建所有必要的类。
 
-## Spout {#580a2b073cfdaa4f81889b99253cd3ab}
+#### 1.2.3.1Spout
 
 pout WordReader 类实现了 IRichSpout 接口。我们将在第四章看到更多细节。WordReader负责从文件按行读取文本，并把文本行提供给第一个 bolt。
 
@@ -266,7 +266,7 @@ pout WordReader 类实现了 IRichSpout 接口。我们将在第四章看到更�
 
 **NOTE**:元组\(tuple\)是一个具名值列表，它可以是任意 java 对象（只要它是可序列化的）。默认情况，Storm 会序列化字符串、字节数组、ArrayList、HashMap 和 HashSet 等类型。
 
-## Bolts {#a8eadd644fa289ddc87352b856177be9}
+#### 1.2.3.2Bolts
 
 现在我们有了一个 spout，用来按行读取文件并每行发布一个_元组_，还要创建两个 bolts，用来处理它们（看图2-1）。_bolts_实现了接口**backtype.storm.topology.IRichBolt**。
 
@@ -441,7 +441,7 @@ String, Integer
 
 execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调用**clearup\(\)**方法打印计数器 map。（虽然这只是一个例子，但是通常情况下，当拓扑关闭时，你应当使用**cleanup\(\)**方法关闭活动的连接和其它资源。）
 
-## 主类 {#4c4631b0a6ca021e1929dc26758cf90f}
+### 1.2.4编写主类
 
 你可以在主类中创建拓扑和一个本地集群对象，以便于在本地测试和调试。**LocalCluster**可以通过**Config**对象，让你尝试不同的集群配置。比如，当使用不同数量的工作进程测试你的拓扑时，如果不小心使用了某个全局变量或类变量，你就能够发现错误。（更多内容请见第三章）
 
@@ -524,7 +524,7 @@ execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调�
 
 程序返回时，你将看到：**— 单词数 【word-counter-2】 — application: 1 is: 1 great: 1 are: 1 powerful: 1 Storm: 3 — 单词数 \[word-counter-3\] — really: 1 is: 1 but: 1 great: 1 test: 1 simple: 1 an: 1 very: 1**棒极了！修改并行度实在是太容易了（当然对于实际情况来说，每个实例都会运行在单独的机器上）。不过似乎有一个问题：单词 is 和 great 分别在每个**WordCounter**各计数一次。怎么会这样？当你调用**shuffleGrouping**时，就决定了 Storm 会以随机分配的方式向你的 bolt 实例发送消息。在这个例子中，理想的做法是相同的单词问题发送给同一个**WordCounter**实例。你把**shuffleGrouping\(“word-normalizer”\)**换成**fieldsGrouping\(“word-normalizer”, new Fields\(“word”\)\)**就能达到目的。试一试，重新运行程序，确认结果。 你将在后续章节学习更多分组方式和消息流类型。
 
-## 结论 {#54bbba803f13eaab0f5441d97b13247a}
+## 1.3结论 {#54bbba803f13eaab0f5441d97b13247a}
 
 我们已经讨论了 Storm 的本地和远程操作模式之间的不同，以及 Storm 的强大和易于开发的特性。你也学习了一些 Storm 的基本概念，我们将在后续章节深入讲解它们。
 
