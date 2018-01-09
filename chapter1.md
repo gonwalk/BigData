@@ -24,8 +24,6 @@
 
 在远程模式下，我们向 Storm 集群提交拓扑，它通常由许多运行在不同机器上的流程组成。远程模式不会出现调试信息， 因此它也称作生产模式。不过在单一开发机上建立一个 Storm 集群是一个好主意，可以在部署到生产环境之前，用来确认拓扑在集群环境下没有任何问题。
 
-你将在第六章学到更多关于远程模式的内容，并在附录B学到如何安装一个 Storm 集群。
-
 ## Hello World {#b10a8db164e0754105b7a99be72e3fe5}
 
 我们在这个工程里创建一个简单的拓扑，数单词数量。我们可以把这个看作 Storm 的 “Hello World”。不过，这是一个非常强大的拓扑，因为它能够扩展到几乎无限大的规模，而且只需要做一些小修改，就能用它构建一个统计系统。举个例子，我们可以修改一下工程用来找出 Twitter 上的热点话题。
@@ -48,7 +46,7 @@
     java version "1.6.0_26"
     Java(TM) SE Runtime Enviroment (build 1.6.0_26-b03)
 
-    Java HotSpot(TM) Server VM (build 20.1-b02, mixed mode)  
+    Java HotSpot(TM) Server VM (build 20.1-b02, mixed mode)
 ```
 
 如果不是上述内容，检查你的 Java 安装情况。（参考[http://www.java.com/download/](http://www.java.com/download/)）
@@ -71,174 +69,44 @@
 要运行我们的拓扑，我们可以编写一个包含基本组件的 pom.xml 文件。
 
 ```
-<
-project xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-             http://maven.apache.org/xsd/maven-4.0.0.xsd"
->
-<
-modelVersion
->
-4.0.0
-<
-/modelVersion
->
-<
-groupId
->
-storm.book
-<
-/groupId
->
-<
-artifactId
->
-Getting-Started
-<
-/artifactId
->
-<
-version
->
-0.0.1-SNAPSHOT
-<
-/version
->
-<
-build
->
-<
-plugins
->
-<
-plugin
->
-<
-groupId
->
-org.apache.maven.plugins
-<
-/groupId
->
-<
-artifactId
->
-maven-compiler-plugin
-<
-/artifactId
->
-<
-version
->
-2.3.2
-<
-/version
->
-<
-configuration
->
-<
-source
->
-1.6
-<
-/source
->
-<
-target
->
-1.6
-<
-/target
->
-<
-compilerVersion
->
-1.6
-<
-/compilerVersion
->
-<
-/configuration
->
-<
-/plugin
->
-<
-/plugins
->
-<
-/build
->
-<
-repositories
->
-<
-!-- Repository where we can found the storm dependencies --
->
-<
-repository
->
-<
-id
->
-clojars.org
-<
-/id
->
-<
-url
->
-http://clojars.org/repo
-<
-/url
->
-<
-/repository
->
-<
-/repositories
->
-<
-dependencies
->
-<
-!-- Storm Dependency --
->
-<
-dependency
->
-<
-groupId
->
-storm
-<
-/groupId
->
-<
-artifactId
->
-storm
-<
-/artifactId
->
-<
-version
->
-0.6.0
-<
-/version
->
-<
-/dependency
->
-<
-/dependencies
->
-<
-/project
->
+             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+             <modelVersion>4.0.0</modelVersion>
+             <groupId>storm.book</groupId>
+             <artifactId>Getting-Started</artifactId>
+             <version>0.0.1-SNAPSHOT</version>
+             <build>
+                 <plugins>
+                     <plugin>
+                         <groupId>org.apache.maven.plugins</groupId>
+                         <artifactId>maven-compiler-plugin</artifactId>
+                         <version>2.3.2</version>
+                         <configuration>
+                             <source>1.6</source>
+                             <target>1.6</target>
+                             <compilerVersion>1.6</compilerVersion>
+                         </configuration>
+                     </plugin>
+                 </plugins>
+             </build>
+             <repositories>
+                 <!-- Repository where we can found the storm dependencies -->
+                 <repository>
+                     <id>clojars.org</id>
+                     <url>http://clojars.org/repo</url>
+                 </repository>
+             </repositories>
+             <dependencies>
+                 <!-- Storm Dependency -->
+                 <dependency>
+                     <groupId>storm</groupId>
+                     <artifactId>storm</artifactId>
+                     <version>0.6.0</version>
+                 </dependency>
+             </dependencies>
+    </project>  
 ```
 
 开头几行指定了工程名称和版本号。然后我们添加了一个编译器插件，告知 Maven 我们的代码要用 Java1.6 编译。接下来我们定义了 Maven 仓库（Maven 支持为同一个工程指定多个仓库）。clojars 是存放 Storm 依赖的仓库。Maven 会为运行本地模式自动下载必要的所有子包依赖。
@@ -253,7 +121,7 @@ version
                   └── java
                |  ├── spouts
                |  └── bolts
-               └── resources  
+               └── resources
 ```
 
 java 目录下的子目录包含我们的代码，我们把要统计单词数的文件保存在 resource 目录下。
@@ -262,7 +130,7 @@ java 目录下的子目录包含我们的代码，我们把要统计单词数的
 
 ## 创建我们的第一个 Topology {#a836d0e8cb9f8ca38876b1aa067865d6}
 
-我们将为运行单词计数创建所有必要的类。可能这个例子中的某些部分，现在无法讲的很清楚，不过我们会在随后的章节做进一步的讲解。
+我们将为运行单词计数创建所有必要的类。
 
 ## Spout {#580a2b073cfdaa4f81889b99253cd3ab}
 
@@ -273,7 +141,6 @@ pout WordReader 类实现了 IRichSpout 接口。我们将在第四章看到更�
 例2-1包含 WordRead 类的完整代码（我们将会分析下述代码的每一部分）。
 
 ```
-
        /**
          *  例2-1.src/main/java/spouts/WordReader.java
          */
@@ -353,7 +220,7 @@ pout WordReader 类实现了 IRichSpout 接口。我们将在第四章看到更�
              public void declareOutputFields(OutputFieldsDeclarer declarer) {
                  declarer.declare(new Fields("line"));
              }
-        }  
+        }
 ```
 
 第一个被调用的 spout 方法都是**public void open\(Map conf, TopologyContext context, SpoutOutputCollector collector**\)。它接收如下参数：配置对象，在定义topology 对象是创建；TopologyContext 对象，包含所有拓扑数据；还有SpoutOutputCollector 对象，它能让我们发布交给 bolts 处理的数据。下面的代码主是这个方法的实现。
@@ -368,7 +235,7 @@ pout WordReader 类实现了 IRichSpout 接口。我们将在第四章看到更�
             throw new RuntimeException("Error reading file ["+conf.get("wordFile")+"]");
         }
         this.collector = collector;
-    }  
+    }
 ```
 
 我们在这个方法里创建了一个 FileReader 对象，用来读取文件。接下来我们要实现**public void nextTuple\(\)**，我们要通过它向 bolts 发布待处理的数据。在这个例子里，这个方法要读取文件并逐行发布数据。
@@ -394,7 +261,7 @@ pout WordReader 类实现了 IRichSpout 接口。我们将在第四章看到更�
         }finally{
             completed = true;
         }
-    }  
+    }
 ```
 
 **NOTE**: Values 是一个 ArrarList 实现，它的元素就是传入构造器的参数。
@@ -418,7 +285,7 @@ _bolt_最重要的方法是**void execute\(Tuple input\)**，每次接收到元�
 ```
     public void declareOutputFields(OutputFieldsDeclarer declarer){
         declarer.declare(new Fields("word"));
-    }  
+    }
 ```
 
 这里我们声明 bolt 将发布一个名为 “word” 的域。
@@ -439,7 +306,7 @@ _bolt_最重要的方法是**void execute\(Tuple input\)**，每次接收到元�
         }
         //对元组做出应答
         collector.ack(input);
-    }  
+    }
 ```
 
 第一行从元组读取值。值可以按位置或名称读取。接下来值被处理并用collector对象发布。最后，每次都调用collector 对象的**ack\(\)**方法确认已成功处理了一个元组。
@@ -492,7 +359,7 @@ _bolt_最重要的方法是**void execute\(Tuple input\)**，每次接收到元�
         public void declareOutputFields(OutputFieldsDeclarer declarer) {
             declarer.declare(new Fields("word"));
         }
-    }  
+    }
 ```
 
 **NOTE**:通过这个例子，我们了解了在一次**execute**调用中发布多个元组。如果这个方法在一次调用中接收到句子 “This is the Storm book”，它将会发布五个元组。
@@ -573,7 +440,7 @@ String, Integer
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {}
-}  
+}
 ```
 
 execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调用**clearup\(\)**方法打印计数器 map。（虽然这只是一个例子，但是通常情况下，当拓扑关闭时，你应当使用**cleanup\(\)**方法关闭活动的连接和其它资源。）
@@ -590,7 +457,7 @@ execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调�
     TopologyBuilder builder = new TopologyBuilder();
     builder.setSpout("word-reader", new WordReader());
     builder.setBolt("word-normalizer", new WordNormalizer()).shuffleGrouping("word-reader");
-    builder.setBolt("word-counter", new WordCounter()).shuffleGrouping("word-normalizer");  
+    builder.setBolt("word-counter", new WordCounter()).shuffleGrouping("word-normalizer");
 ```
 
 在_spout_和_bolts_之间通过**shuffleGrouping**方法连接。这种分组方式决定了 Storm 会以随机分配方式从源节点向目标节点发送消息。
@@ -600,7 +467,7 @@ execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调�
 ```
     Config conf = new Config();
     conf.put("wordsFile", args[0]);
-    conf.setDebug(true);  
+    conf.setDebug(true);
 ```
 
 由 spout 读取的文件的文件名，赋值给**wordFile**属性。由于是在开发阶段，设置**debug**属性为**true**，Strom 会打印节点间交换的所有消息，以及其它有助于理解拓扑运行方式的调试数据。
@@ -611,7 +478,7 @@ execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调�
     LocalCluster cluster = new LocalCluster();
     cluster.submitTopology("Getting-Started-Topologie", conf, builder.createTopology());
     Thread.sleep(2000);
-    cluster.shutdown();  
+    cluster.shutdown();
 ```
 
 调用**createTopology**和**submitTopology**，运行拓扑，休眠两秒钟（拓扑在另外的线程运行），然后关闭集群。
@@ -648,7 +515,7 @@ execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调�
             Thread.sleep(1000);
             cluster.shutdown();
         }
-    }  
+    }
 ```
 
 观察运行情况
@@ -656,7 +523,7 @@ execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调�
 你已经为运行你的第一个拓扑准备好了。在这个目录下面创建一个文件，**/src/main/resources/words.txt**，一个单词一行，然后用下面的命令运行这个拓扑：**mvn exec:java -Dexec.mainClass=”TopologyMain” -Dexec.args=”src/main/resources/words.txt**。**举个例子，如果你的 words.txt 文件有如下内容：**Storm test are great is an Storm simple application but very powerful really Storm is great**你应该会在日志中看到类似下面的内容：**is: 2 application: 1 but: 1 great: 1 test: 1 simple: 1 Storm: 3 really: 1 are: 1 great: 1 an: 1 powerful: 1 very: 1**在这个例子中，每类节点只有一个实例。但是如果你有一个非常大的日志文件呢？你能够很轻松的改变系统中的节点数量实现并行工作。这个时候，你就要创建两个**WordCounter\*\* 实例。
 
 ```
-    builder.setBolt("word-counter", new WordCounter(),2).shuffleGrouping("word-normalizer");  
+    builder.setBolt("word-counter", new WordCounter(),2).shuffleGrouping("word-normalizer");
 ```
 
 程序返回时，你将看到：**— 单词数 【word-counter-2】 — application: 1 is: 1 great: 1 are: 1 powerful: 1 Storm: 3 — 单词数 \[word-counter-3\] — really: 1 is: 1 but: 1 great: 1 test: 1 simple: 1 an: 1 very: 1**棒极了！修改并行度实在是太容易了（当然对于实际情况来说，每个实例都会运行在单独的机器上）。不过似乎有一个问题：单词 is 和 great 分别在每个**WordCounter**各计数一次。怎么会这样？当你调用**shuffleGrouping**时，就决定了 Storm 会以随机分配的方式向你的 bolt 实例发送消息。在这个例子中，理想的做法是相同的单词问题发送给同一个**WordCounter**实例。你把**shuffleGrouping\(“word-normalizer”\)**换成**fieldsGrouping\(“word-normalizer”, new Fields\(“word”\)\)**就能达到目的。试一试，重新运行程序，确认结果。 你将在后续章节学习更多分组方式和消息流类型。
@@ -664,6 +531,4 @@ execute 方法使用一个 map 收集单词并计数。拓扑结束时，将调�
 ## 结论 {#54bbba803f13eaab0f5441d97b13247a}
 
 我们已经讨论了 Storm 的本地和远程操作模式之间的不同，以及 Storm 的强大和易于开发的特性。你也学习了一些 Storm 的基本概念，我们将在后续章节深入讲解它们。
-
-
 
