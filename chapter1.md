@@ -403,7 +403,7 @@ public class WordCounter implements IRichBolt{
          * 如果单词尚不存在于map，我们就创建一个，如果已在，我们就为它加1
          */
         if(!counters.containsKey(str)){
-            conters.put(str,1);
+            counters.put(str,1);
         }else{
             Integer c = counters.get(str) + 1;
             counters.put(str,c);
