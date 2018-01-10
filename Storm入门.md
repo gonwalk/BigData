@@ -583,8 +583,6 @@ public class WordCounter implements IRichBolt{
 
 我们已经讨论了 Storm 的本地和远程操作模式之间的不同，以及 Storm 的强大和易于开发的特性。你也学习了一些 Storm 的基本概念，我们将在后续章节深入讲解它们。
 
-
-
 # 3 Storm Topology（拓扑）
 
 在这一章，你将学到如何在同一个 Storm 拓扑结构内的不同组件之间传递元组，以及如何向一个运行中的 Storm 集群发布一个拓扑。
@@ -601,14 +599,14 @@ public class WordCounter implements IRichBolt{
 ···
     builder.setBolt("word-normalizer", new WordNormalizer())
            .shuffleGrouping("word-reader");
-···  
+···
 ```
 
 在前面的代码块里，一个 bolt 由**TopologyBuilder**对象设定， 然后使用随机数据流组指定数据源。**数据流组通常将数据源组件的 ID 作为参数，取决于数据流组的类型不同还有其它可选参数。**
 
 **NOTE**：每个**InputDeclarer**可以有一个以上的数据源，而且每个数据源可以分到不同的组。具体的数据流组的分类如下：
 
-### 3.1.1 随机数据流组 
+### 3.1.1 随机数据流组
 
 随机流组是最常用的数据流组。它只有一个参数（数据源组件），并且数据源会向随机选择的 bolt 发送元组，保证每个消费者收到近似数量的元组。
 
@@ -622,7 +620,7 @@ public class WordCounter implements IRichBolt{
 ···
     builder.setBolt("word-counter", new WordCounter(),2)
            .fieldsGrouping("word-normalizer", new Fields("word"));
-···  
+···
 ```
 
 **NOTE**: **在域数据流组中的所有域集合必须存在于数据源的域声明中。**
@@ -644,15 +642,15 @@ public class WordCounter implements IRichBolt{
             //什么也不做
         }
         ···
-    }  
+    }
 ```
 
-我们添加了一个 if 分支，用来检查源数据流。 Storm 允许我们声明具名数据流（如果你不把元组发送到一个具名数据流，默认发送到名为 ”**default**“ 的数据流）。这是一个识别元组的极好的方式，就像这_个例子中，我们想识别**signals**一样。 在拓扑定义中，你要向**word-counter **_bolt 添加第二个数据流，用来接收从**signals-spout**数据流发送到所有 bolt 实例的每一个元组。
+我们添加了一个 if 分支，用来检查源数据流。 Storm 允许我们声明具名数据流（如果你不把元组发送到一个具名数据流，默认发送到名为 ”**default**“ 的数据流）。这是一个识别元组的极好的方式，就像这\_个例子中，我们想识别**signals**一样。 在拓扑定义中，你要向**word-counter **\_bolt 添加第二个数据流，用来接收从**signals-spout**数据流发送到所有 bolt 实例的每一个元组。
 
 ```
     builder.setBolt("word-counter", new WordCounter(),2)
            .fieldsGroupint("word-normalizer",new Fields("word"))
-           .allGrouping("signals-spout","signals");   
+           .allGrouping("signals-spout","signals");
 ```
 
 **signals-spout**的实现请参考[git仓库](https://github.com/storm-book/examples-ch03-topologies)。
@@ -685,7 +683,7 @@ public class WordCounter implements IRichBolt{
         public void prepare(TopologyContext context, Fields outFields, List<Integer> targetTasks) {
             numTasks = targetTasks.size();
         }
-    }  
+    }
 ```
 
 这是一个**CustomStreamGrouping**的简单实现，在这里我们采用单词首字母字符的整数值与任务数的余数，决定接收元组的 bolt。
@@ -694,7 +692,7 @@ public class WordCounter implements IRichBolt{
 
 ```
     builder.setBolt("word-normalizer", new WordNormalizer())
-           .customGrouping("word-reader", new ModuleGrouping());  
+           .customGrouping("word-reader", new ModuleGrouping());
 ```
 
 ### 3.1.5 直接数据流组
@@ -721,7 +719,7 @@ public class WordCounter implements IRichBolt{
         }else{
             return word.charAt(0) % numCounterTasks;
         }
-    }  
+    }
 ```
 
 在**prepare**方法中计算任务数
@@ -731,14 +729,14 @@ public class WordCounter implements IRichBolt{
                 OutputCollector collector) {
         this.collector = collector;
         this.numCounterTasks = context.getComponentTasks("word-counter");
-    }  
+    }
 ```
 
 在拓扑定义中指定数据流将被直接分组：
 
 ```
     builder.setBolt("word-counter", new WordCounter(),2)
-           .directGrouping("word-normalizer");  
+           .directGrouping("word-normalizer");
 ```
 
 ### 3.1.6 全局数据流组
@@ -751,7 +749,7 @@ public class WordCounter implements IRichBolt{
 
 ## LocalCluster VS StormSubmitter {#6d8dcc4853ff1d930fe4217b92bf25f8}
 
-到目前为止，你已经用一个叫做**LocalCluster**的工具在你的本地机器上运行了一个拓扑。Storm 的基础工具，使你能够在自己的计算机上方便的运行和调试不同的拓扑。但是你怎么把自己的拓扑提交给运行中的 Storm 集群呢？Storm 有一个有趣的功能，在一个真实的集群上运行自己的拓扑是很容易的事情。要实现这一点，你需要把**LocalCluster**换成**StormSubmitter**并实现**submitTopology**方法， 它负责把拓扑发送给集群。
+到目前为止，你已经用一个叫做**LocalCluster**的工具在你的本地机器上运行了一个拓扑。**Storm 的基础工具，使你能够在自己的计算机上方便的运行和调试不同的拓扑。但是你怎么把自己的拓扑提交给运行中的 Storm 集群呢？Storm 有一个有趣的功能，在一个真实的集群上运行自己的拓扑是很容易的事情。要实现这一点，你需要把LocalCluster换成StormSubmitter并实现submitTopology方法， 它负责把拓扑发送给集群。**
 
 下面是修改后的代码：
 
@@ -762,7 +760,7 @@ public class WordCounter implements IRichBolt{
     StormSubmitter.submitTopology("Count-Word-Topology-With_Refresh-Cache", conf,
             builder.createTopology());
     //Thread.sleep(1000);
-    //cluster.shutdown();  
+    //cluster.shutdown();
 ```
 
 **NOTE**: 当你使用**StormSubmitter**时，你就不能像使用**LocalCluster**时一样通过代码控制集群了。
@@ -774,7 +772,7 @@ public class WordCounter implements IRichBolt{
 对于这个例子，在拓扑工程目录下面运行：
 
 ```
-storm jar target/Topologies-0.0.1-SNAPSHOT.jar countword.TopologyMain src/main/resources/words.txt  
+storm jar target/Topologies-0.0.1-SNAPSHOT.jar countword.TopologyMain src/main/resources/words.txt
 ```
 
 通过这些命令，你就把拓扑发布集群上了。
@@ -782,7 +780,7 @@ storm jar target/Topologies-0.0.1-SNAPSHOT.jar countword.TopologyMain src/main/r
 如果想停止或杀死它，运行：
 
 ```
-storm kill Count-Word-Topology-With-Refresh-Cache  
+storm kill Count-Word-Topology-With-Refresh-Cache
 ```
 
 **NOTE**：拓扑名称必须保证惟一性。
@@ -797,7 +795,7 @@ storm kill Count-Word-Topology-With-Refresh-Cache
 
 **NOTE**：单实例 DRPC 服务器能够执行许多函数。每个函数由一个惟一的名称标识。
 
-Storm 提供的第二个工具（已在例子中用过）是 LineDRPCTopologyBuilder**\*\*，一个辅助构建DRPC 拓扑的抽象概念。生成的拓扑创建**DRPCSpouts**——它连接到 DRPC 服务器并向拓扑的其它部分分发数据——并包装**_**bolts**_**，使结果从最后一个**_**bolt**_**返回。依次执行所有添加到**LinearDRPCTopologyBuilder\*_对象的_bolts\*。
+Storm 提供的第二个工具（已在例子中用过）是 LineDRPCTopologyBuilder**\*\*，一个辅助构建DRPC 拓扑的抽象概念。生成的拓扑创建**DRPCSpouts**——它连接到 DRPC 服务器并向拓扑的其它部分分发数据——并包装**_**bolts**_**，使结果从最后一个**_**bolt**_**返回。依次执行所有添加到**LinearDRPCTopologyBuilder\*\_对象的\_bolts\*。
 
 作为这种类型的拓扑的一个例子，我们创建了一个执行加法运算的进程。虽然这是一个简单的例子，但是这个概念可以扩展到复杂的分布式计算。
 
@@ -806,7 +804,7 @@ bolt 按下面的方式声明输出：
 ```
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declare(new Fields("id","result"));
-    }  
+    }
 ```
 
 因为这是拓扑中惟一的 bolt，它必须发布 RPC ID 和结果。**execute**方法负责执行加法运算。
@@ -824,7 +822,7 @@ bolt 按下面的方式声明输出：
             added += Integer.parseInt(num);
         }
         collector.emit(new Values(input.getValue(0),added));
-    }  
+    }
 ```
 
 包含加法 bolt 的拓扑定义如下：
@@ -849,7 +847,7 @@ bolt 按下面的方式声明输出：
 
         cluster.shutdown();
         drpc.shutdown();
-    }  
+    }
 ```
 
 创建一个**LocalDRPC**对象在本地运行 DRPC 服务器。接下来，创建一个拓扑构建器（译者注：LineDRpctopologyBuilder 对象），把 bolt 添加到拓扑。运行 DRPC 对象（LocalDRPC 对象）的**execute**方法测试拓扑。
