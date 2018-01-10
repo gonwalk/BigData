@@ -2,7 +2,7 @@
 
 2016-08-12
 
-http://wiki.jikexueyuan.com/project/storm/basic-knowledge.html
+[http://wiki.jikexueyuan.com/project/storm/basic-knowledge.html](http://wiki.jikexueyuan.com/project/storm/basic-knowledge.html)
 
 ## 1.1 基础知识
 
@@ -50,8 +50,6 @@ Storm 是一个分布式的，可靠的，容错的数据流处理系统。它�
 * 可靠的：所有消息都可保证至少处理一次。如果出错了，消息可能处理不只一次，不过你永远不会丢失消息。
 * 快速：速度是驱动 Storm 设计的一个关键因素
 * 事务性：You can get exactly once messaging semantics for pretty much any computation. 你可以为几乎任何计算得到恰好一次消息语义。
-
-
 
 # 2.Storm起步
 
@@ -202,11 +200,11 @@ WordReader 类实现了 IRichSpout 接口。**WordReader负责从文件按行读
 
 **NOTE**:** 一个 spout 发布一个定义域列表。这个架构允许你使用不同的 bolts 从同一个spout 流读取数据，它们的输出也可作为其它 bolts 的定义域**，以此类推。
 
-例1-1包含 WordRead 类的完整代码（我们将会分析下述代码的每一部分）。
+例2-1包含 WordRead 类的完整代码（我们将会分析下述代码的每一部分）。
 
 ```
        /**
-         *  例1-1.src/main/java/spouts/WordReader.java
+         *  例2-1.src/main/java/spouts/WordReader.java
          */
         package spouts;
 
@@ -374,10 +372,10 @@ _bolt_最重要的方法是**void execute\(Tuple input\)**，每次接收到元�
 
 第一行从元组读取值。值可以按位置或名称读取。接下来值被处理并用collector对象发布。最后，每次都调用collector 对象的**ack\(\)**方法确认已成功处理了一个元组。
 
-例1-2是这个类的完整代码。
+例2-2是这个类的完整代码。
 
 ```
-    //例1-2 src/main/java/bolts/WordNormalizer.java
+    //例2-2 src/main/java/bolts/WordNormalizer.java
     package bolts;
     import java.util.ArrayList;
     import java.util.List;
@@ -536,10 +534,10 @@ public class WordCounter implements IRichBolt{
 
 调用**createTopology**和**submitTopology**，运行拓扑，休眠两秒钟（拓扑在另外的线程运行），然后关闭集群。
 
-例1-3是完整的代码
+例2-3是完整的代码
 
 ```
-    //例1-3 src/main/java/TopologyMain.java
+    //例2-3 src/main/java/TopologyMain.java
     import spouts.WordReader;
     import backtype.storm.Config;
     import backtype.storm.LocalCluster;
@@ -584,8 +582,4 @@ public class WordCounter implements IRichBolt{
 ## 2.3结论 {#54bbba803f13eaab0f5441d97b13247a}
 
 我们已经讨论了 Storm 的本地和远程操作模式之间的不同，以及 Storm 的强大和易于开发的特性。你也学习了一些 Storm 的基本概念，我们将在后续章节深入讲解它们。
-
-
-
-
 
