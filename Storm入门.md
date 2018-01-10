@@ -747,7 +747,7 @@ public class WordCounter implements IRichBolt{
 
 写作本书时（Stom0.7.1 版），这个数据流组相当于随机数据流组。也就是说，使用这个数据流组时，并不关心数据流是如何分组的。
 
-## LocalCluster VS StormSubmitter {#6d8dcc4853ff1d930fe4217b92bf25f8}
+## 3.3 LocalCluster VS StormSubmitter {#6d8dcc4853ff1d930fe4217b92bf25f8}
 
 到目前为止，你已经用一个叫做**LocalCluster**的工具在你的本地机器上运行了一个拓扑。**Storm 的基础工具，使你能够在自己的计算机上方便的运行和调试不同的拓扑。但是你怎么把自己的拓扑提交给运行中的 Storm 集群呢？Storm 有一个有趣的功能，在一个真实的集群上运行自己的拓扑是很容易的事情。要实现这一点，你需要把LocalCluster换成StormSubmitter并实现submitTopology方法， 它负责把拓扑发送给集群。**
 
@@ -787,7 +787,7 @@ storm kill Count-Word-Topology-With-Refresh-Cache
 
 **NOTE**：如何安装Storm客户端，参考附录A
 
-## DRPC 拓扑 {#91c11fb7a22712de17c2cbb69a53cbf1}
+## 3.4 DRPC 拓扑 {#91c11fb7a22712de17c2cbb69a53cbf1}
 
 有一种特殊的拓扑类型叫做分布式远程过程调用（DRPC），它利用 Storm 的分布式特性执行远程过程调用（RPC）（见下图）。Storm 提供了一些用来实现 DRPC 的工具。第一个是 DRPC 服务器，它就像是客户端和 Storm 拓扑之间的连接器，作为拓扑的_spout_的数据源。它接收一个待执行的函数和函数参数，然后对于函数操作的每一个数据块，这个服务器都会通过拓扑分配一个请求 ID 用来识别 RPC 请求。拓扑执行最后的 bolt 时，它必须分配 RPC 请求 ID 和结果，使 DRPC 服务器把结果返回正确的客户端。
 
