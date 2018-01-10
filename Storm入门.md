@@ -807,15 +807,13 @@ bolt 按下面的方式声明输出：
     }
 ```
 
-因为这是拓扑中惟一的 bolt，它必须发布 RPC ID 和结果。**execute**方法负责执行加法运算。
+因为这是拓扑中惟一的 bolt，它必须发布 RPC  ID 和结果。**execute方法负责执行加法运算**。
 
 ```
     public void execute(Tuple input) {
         String[] numbers = input.getString(1).split("\\+");
         Integer added = 0;
-        if(numbers.length
-<
-2){
+        if(numbers.length < 2){
             throw new InvalidParameterException("Should be at least 2 numbers");
         }
         for(String num : numbers){
