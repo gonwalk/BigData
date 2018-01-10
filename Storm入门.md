@@ -51,6 +51,10 @@ Storm 是一个分布式的，可靠的，容错的数据流处理系统。它�
 * 快速：速度是驱动 Storm 设计的一个关键因素
 * 事务性：You can get exactly once messaging semantics for pretty much any computation. 你可以为几乎任何计算得到恰好一次消息语义。
 
+## 1.4 Storm学习思维导图
+
+ ![](/assets/Storm学习思维导图.png)上面这张思维导图，是参考资料storm的百度百科进行绘制的。
+
 # 2.Storm起步
 
 在本章，我们要创建一个 Storm 工程和我们的第一个 Storm 拓扑结构。
