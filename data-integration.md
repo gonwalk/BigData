@@ -1,6 +1,6 @@
 # 数据集成——ETL
 
-最近在学习[Kettle](http://www.ukettle.org/)，期间收集了很多帖子，整理过后分享给大家，还有很多知识点没学习到，还望大家帮我补充下
+最近在学习[Kettle](http://www.ukettle.org/)，期间收集了很多帖子，整理过后分享给大家，还有很多知识点没学习到，还望大家帮我补充下。
 
 ## Kettle入门：
 
@@ -12,7 +12,6 @@ Kettle简介：百度百科
 
 [http://community.pentaho.com/projects/data-integration/](http://community.pentaho.com/projects/data-integration/)
 
-  
 常见ETL工具一览，你知多少？：
 
 [http://www.itpub.net/forum.php?mod=viewthread&tid=1757788](http://www.itpub.net/forum.php?mod=viewthread&tid=1757788)
@@ -51,7 +50,9 @@ kettle插件更新：定时执行资源库及文件的ktr和kjb作业：
 
 [http://www.taskctl.com/forum/detail\_67.html](http://www.taskctl.com/forum/detail_67.html)
 
+μKettle - 开源中文社区
 
+[http://www.ukettle.org/](http://www.ukettle.org/)
 
 ## Kettle 学习视频：
 
@@ -73,11 +74,7 @@ kettle定时批量调度监控方案现状分析
 
 [http://www.ukettle.org/thread-1479-1-1.html](http://www.ukettle.org/thread-1479-1-1.html)
 
-解决kettle调度效率低，不可高并发调度方法  
+解决kettle调度效率低，不可高并发调度方法
 
 [http://www.ukettle.org/thread-1485-1-1.html](http://www.ukettle.org/thread-1485-1-1.html)
-
-
-
-
 
