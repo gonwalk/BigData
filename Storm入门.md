@@ -856,15 +856,11 @@ bolt 按下面的方式声明输出：
 
 **NOTE**：使用**DRPCClient**类连接远程 DRPC 服务器。DRPC 服务器暴露了[Thrift API](http://thrift.apache.org/)，因此可以跨语言编程；并且不论是在本地还是在远程运行DRPC服务器，它们的 API 都是相同的。 对于采用 Storm 配置的 DRPC 配置参数的 Storm 集群，调用构建器对象的**createRemoteTopology**向 Storm 集群提交一个拓扑，而不是调用**createLocalTopology**。
 
-
-
 # 4 Storm Spouts
 
 2016-08-12
 
-https://www.w3cschool.cn/storm/jur81jzk.html
-
-
+[https://www.w3cschool.cn/storm/jur81jzk.html](https://www.w3cschool.cn/storm/jur81jzk.html)
 
 你将在本章了解到_spout_作为拓扑入口和它的容错机制相关的最常见的设计策略。
 
@@ -899,7 +895,7 @@ https://www.w3cschool.cn/storm/jur81jzk.html
         }
         toSend.clear();
     }
-}  
+}
 ```
 
 如果有未发送的消息，得到每条事务消息和它的关联 ID，把它们作为一个元组发送出去，最后清空消息队列。值得一提的是，调用 map 的**clear**是安全的，因为**nextTuple**失败时，只有**ack**方法会修改 map，而它们都运行在一个线程内。
@@ -911,7 +907,7 @@ public void ack(Object msgId)
 {
     messages.remove(msgId);
     failCounterMessages.remove(msgId);
-}  
+}
 ```
 
 **fail**方法决定应该重新发送一条消息，还是已经失败太多次而放弃它。
@@ -935,7 +931,7 @@ public void fail(Object msgId) {
     transactionFailureCount.put(transactionId, failures);
     toSend.put(transactionId, messages.get(transactionId));
     LOG.info("重发消息【"+msgId+"】");
-}  
+}
 ```
 
 首先，检查事务失败次数。如果一个事务失败次数太多，通过抛出**RuntimeException**终止发送此条消息的工作。否则，保存失败次数，并把消息放入待发送队列（**toSend**），它就会再次调用**nextTuple**时得以重新发送。
@@ -993,7 +989,7 @@ public void nextTuple() {
             Thread.sleep(10000);
         } catch (InterruptedException e1) {}
     }
-}  
+}
 ```
 
 **NOTE**:在这里你锁定了**nextTuple**方法，所以你永远也不会执行 ack**\*\* 和**fail\*\* 方法。在真实的应用中，我们**推荐你在一个单独的线程中执行锁定，并维持一个内部队列用来交换数据**（你会在下一个例子中学到如何实现这一点：消息队列）。
@@ -1023,7 +1019,6 @@ context.getComponentTasks(context.getThisComponentId()).size();
  this.track =tracksBuffer.substring(1).toString();
     }
  ...
-
 ```
 
 利用这一技巧，你可以把 collector 对象均匀的分配给多个数据源，当然也可以应用到其它的情形。比如说，从web服务器收集日志文件
@@ -1069,40 +1064,32 @@ new Thread(new Runnable() {
             }catch(InterruptedException e1){}
         }
     }
-}).start();  
+}).start();
 ```
 
-这个线程的惟一目的就是，创建 redis 连接，然后执行**blpop**命令。每当收到了一个消息，它就被添加到一个内部消息队列，然后会被 nextTuple\*\*\*\* 消费。对于 spout 来说数据源就是 redis 队列，它不知道消息分发者在哪里也不知道消息的数量。
+**这个线程的惟一目的就是，创建 redis 连接，然后执行blpop命令。每当收到了一个消息，它就被添加到一个内部消息队列，然后会被 nextTuple\*\*\*\* 消费。对于 spout 来说数据源就是 redis 队列，它不知道消息分发者在哪里也不知道消息的数量。**
 
-**NOTE**:我们不推荐你在 spout 创建太多线程，因为每个 spout 都运行在不同的线程。一个更好的替代方案是增加拓扑并行性，也就是通过 Storm 集群在分布式环境创建更多线程。
+**NOTE**: 我们**不推荐你在 spout 创建太多线程，因为每个 spout 都运行在不同的线程。一个更好的替代方案是增加拓扑并行性，也就是通过 Storm 集群在分布式环境创建更多线程。**
 
 在**nextTupl**e 方法中，要做的惟一的事情就是从内部消息队列获取消息并再次分发它们。
 
 ```
-public
-void
-nextTuple
-()
-{
-    
-while
-(!messages.isEmpty()){
-        collector.emit(
-new
- Values(messages.poll()));
+public void nextTuple(){
+    while(!messages.isEmpty()){
+        collector.emit(new Values(messages.poll()));
     }
 }  
 ```
 
-**NOTE**:你还可以借助 redis 在 spout 实现消息重发，从而实现可靠的拓扑。（译者注：这里是相对于开头的**可靠的消息VS不可靠的消息**讲的）
+**NOTE**: 你还可以借助 redis 在 spout 实现消息重发，从而实现可靠的拓扑。（译者注：这里是相对于开头的**可靠的消息VS不可靠的消息**讲的）
 
-## DRPC
+### 4.2.3 DRPC
 
 DRPCSpout从DRPC 服务器接收一个函数调用，并执行它（见第三章的例子）。对于最常见的情况，使用[backtype.storm.drpc.DRPCSpout](http://nathanmarz.github.io/storm/doc/backtype/storm/drpc/DRPCSpout.html)就足够了，不过仍然有可能利用 Storm 包内的DRPC类创建自己的实现。
 
-## 小结
+## 4.3 小结
 
-现在你已经学习了常见的spout实现模式，它们的优势，以及如何确保消息可靠性。不存在适用于所有拓扑的架构模式。如果你知道数据源，并且能够控制它们，你就可以使用直接连接；然而如果你需要添加未知数据源或从多种数据源接收数据，就最好使用消息队列。如果你要执行在线过程，你可以使用 DRPCSpout 或类似的实现。
+现在你已经学习了常见的spout实现模式，它们的优势，以及如何确保消息可靠性。**不存在适用于所有拓扑的架构模式。如果你知道数据源，并且能够控制它们，你就可以使用直接连接；然而如果你需要添加未知数据源或从多种数据源接收数据，就最好使用消息队列。如果你要执行在线过程，你可以使用 DRPCSpout 或类似的实现。**
 
 你已经学习了三种常见连接方式，不过依赖于你的需求仍然有无限的可能。
 
