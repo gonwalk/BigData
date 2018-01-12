@@ -4,4 +4,5 @@
 * [Hadoop 和Spark及Storm对比](hadoophe-spark-ji-storm-dui-bi.md)
 * [Storm入门](Storm入门.md)
 * [Data Integration](data-integration.md)
+* [Hive](hive.md)
 
