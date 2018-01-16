@@ -140,7 +140,7 @@ val  s  =  if\(x &gt; 0\) 1 else -1
 
 在Scala中，每个表达式都有一个类型。举例来说，表达式if \( x &gt; 0）1 else -1 的类型是Int，因为两个分支的类型都是Int。混合类型表达式，比如：
 
-if \( x &gt; 0\) "positive" else -1 
+if \( x &gt; 0\) "positive" else -1
 
 **上述表达式的类型是两个分支类型的公共超类型。在本例中，其中一个分支是java.lang.String，而另一个分支是Int。它们的公共超类型叫做Any。**
 
@@ -164,7 +164,9 @@ if \( n &gt; 0 \) { r = r \* n **; ** n -= 1 }
 
 s = s0 + \(v - v0\) \* t +                        //+ 告诉解析器这里不是语句的末尾
 
-    0.5 \* \(a -a0 \)  \* t \* t
+```
+0.5 \* \(a -a0 \)  \* t \* t
+```
 
 ## 2.3 块表达式和赋值
 
@@ -178,8 +180,6 @@ s = s0 + \(v - v0\) \* t +                        //+ 告诉解析器这里不�
 
 x = y = 1              //不要这样写， y = 1 的值是\(\)，几乎不太可能想把一个Unit类型的值赋值给x。
 
-
-
 ## 2.4 输入和输出
 
 如果要打印一个值，使用print或println函数。后者在打印完内容后会追加一个换行符。
@@ -188,5 +188,204 @@ x = y = 1              //不要这样写， y = 1 的值是\(\)，几乎不太�
 
 printf\("Hello , %s ! You are %d years old . \n ", "Fred", 36\)
 
-可以使用readLine函数从控制台读取一行输入。
+可以使用readLine函数从控制台读取一行输入。如果要读取数字、Boolean或者是字符，可以使用readInt、readDouble、readByte、readShort、readLong、readFloat、readBoolean或者readChar。与其他方法不同，readLine带一个参数作为提示字符串：
+
+val name = readLine\("Your name: "\)
+
+print\("Your age: "\)
+
+val age = readInt\(\)
+
+printf\(" Hello, %s! Next year, your will be %d. \n", name , age + 1\)
+
+**注意：早期的Scala中`Console`类提供了一系列的终端输入方法，在现在的版本中这些方法已经被废弃。**
+
+* **当前版本的Scala获取终端输入需要使用包`scala.io.StdIn`中的相关方法。**
+* `scala.io.StdIn`中的相关方法签名与先前的`Console`类中完全相同。
+* **使用`readLine()`获取单行文本输入，返回`String`类型。**
+* **使用`readInt()/readFloat()/readChar()/readLong()...`等方法获取特定类型的输出，当输入的内容不匹配时，会抛出异常。**
+* **使用`readf()/readf1()/readf2()/readf3()`等方法能以`java.text.MessageFormat`语法格式化接收的终端输入。**
+
+详情参见：Scala学习笔记\(4\) - CSDN博客[http://blog.csdn.net/u011152627/article/details/50934769](http://blog.csdn.net/u011152627/article/details/50934769)
+
+如下代码所示：
+
+```
+scala> val str = scala.io.StdIn.readLine()      //自行脑补终端输入"Test input"
+str: String = Test input
+scala> val int = scala.io.StdIn.readInt()       //自行脑补终端输入"200"
+int: Int = 200
+
+//输入内容不匹配读取类型时会抛出异常
+scala> val double = scala.io.StdIn.readDouble()
+java.lang.NumberFormatException: For input string: "test"
+  at sun.misc.FloatingDecimal.readJavaFormatString(FloatingDecimal.java:2043)
+  at sun.misc.FloatingDecimal.parseDouble(FloatingDecimal.java:110)
+  at java.lang.Double.parseDouble(Double.java:538)
+  at scala.collection.immutable.StringLike$class.toDouble(StringLike.scala:284)
+  at scala.collection.immutable.StringOps.toDouble(StringOps.scala:30)
+  at scala.io.StdIn$class.readDouble(StdIn.scala:155)
+  at scala.io.StdIn$.readDouble(StdIn.scala:229)
+  ... 33 elided
+
+//readf()可以接收任意数量的值，返回值为List[Any]类型
+scala> val list = scala.io.StdIn.readf("{0} + {1}")             //输入该语句后，在光标提示处输入字符串——Test + Input
+list: List[Any] = List(Test, Input)                             //按照格式化字符串提取出了输入内容，list为List类型的数据
+scala> list foreach { println }                                 //循环输出list中的数据："Test"和"Input"，每次输出后换行
+Test
+Input
+
+//readf1()仅能接收一个值，返回接收的值
+scala> val num = scala.io.StdIn.readf1("This is {0}")           //输入该语句后，在光标提示处输入666
+num: Any = 666
+//readf2()/readf3()接收两个/三个值，返回值为Tuple类型
+scala> val tuple = scala.io.StdIn.readf3("{0} + {1} + {2}")     //自行脑补终端输入"One + Two + Three"
+tuple: (Any, Any, Any) = (On,Two,Three)
+```
+
+```
+scala> print("Answer:")
+Answer:
+scala> println("Answer: " + 26)
+Answer: 26
+
+scala> printf("Hello , %s ! You are %d years old . \n ", "Fred", 36)
+Hello , Fred ! You are 36 years old . 
+ 
+scala> val name = readLine("Your name:")
+warning: there was one deprecation warning; re-run with -deprecation for details
+Your name:name: String = sym
+
+scala> print("Your age:")
+Your age:
+scala> val ageInt = scala.io.StdIn.readInt()
+ageInt: Int = 20
+
+scala> val age = readInt()
+warning: there was one deprecation warning; re-run with -deprecation for details
+age: Int = 36
+scala> val str = scala.io.StdIn.readLine()
+str: String = hello
+
+scala> val int = scala.io.StdIn.readInt()
+int: Int = 200
+
+scala> val double = scala.io.StdIn.readDouble()
+double: Double = 36.66
+
+
+```
+
+## **2.5 循环**
+
+Scala拥有与Java和C++相同的while和do循环。Scala没有与for（初始化变量；检查变量是否满足某条件；更新变量）循环直接对应的结构。如果要使用这样的循环，有两个选择：一是使用while循环，二是使用如下for语句：
+
+```
+scala> var r = 0
+r: Int = 0
+
+scala> for(x <- 1 to 10)
+     | r = r + x
+
+scala> r
+res10: Int = 55
+
+```
+
+在第1章中的RichInt类中曾提到过这个to方法。1 to n这个调用返回数字1到数字n（包含）的Range（区间）。
+
+下面的这个语法结构
+
+for\( i &lt;-  表达式\)
+
+**让变量i遍历&lt;-右边的表达式的所有值（注意：这里的**_**符号“&lt;-”应该理解为一个整体，中间没有空格**_**，要写成&lt; -中间多一个空格的形式则会报错）。对于Scala集合，比如Range而言，这个循环会让i依次取得区间中的每一个值。**
+
+**说明：在for循环的变量之前并没有val或var的指定。该变量的类型是集合的元素类型。循环变量的作用域一直持续到循环结束。**
+
+**遍历字符串或数组时，通常需要**_**使用从0到n - 1的区间。这个时候可以用until方法而不是to方法**_**。until方法返回一个并不包含上限的区间。**
+
+```
+scala> val s = "Hello"
+s: String = Hello
+
+scala> var sum = 0
+sum: Int = 0
+
+scala> for (i <- 0 until s.length)               //i的最后一个取值是s.length - 1
+     | sum += s(i)
+
+scala> sum
+res18: Int = 500
+
+```
+
+在本例中，事实上我们并不需要使用下标。可以直接遍历对应的字符序列：
+
+```
+scala> var sum = 0
+sum: Int = 0
+
+scala> for( ch <- "Hello")
+     | sum += ch
+
+scala> sum
+res20: Int = 500
+
+```
+
+**在Scala中，对循环的使用通常可以通过对序列中的所有值应用某个函数的方式来处理，而完成这项工作只需要一次方法调用即可。**
+
+**说明：Scala并没有提供break或continue语句来退出循环。如果需要break时，有如下几个选项：**
+
+**1.使用Boolean型的控制变量。**
+
+**2.使用嵌套函数——可以从函数当中return。**
+
+**3.使用Breaks对象中的break方法：**
+
+```
+scala> var res = 0
+res: Int = 0
+
+scala> breakable{
+     | for(i <- 1 to 100){
+     | if(i % 2 == 0)break else res += i
+     | }
+     | }
+
+scala> res
+res23: Int = 1
+
+```
+
+在这里，控制权的转移是通过抛出和捕获异常完成的，因此，如果时间很重要的话，应该尽量避免使用这套机制。
+
+## 2.6 高级for循环和for推导式
+
+在2.5节，是for循环的基本形态。Scala中的for循环比起Java和C++功能要丰富得多。
+
+可以以变量 &lt;- 表达式 的形式提供多个生成器，用分号将它们隔开。例如，
+
+```
+scala> for( i <- 1 to 3; j <- 1 to 3)print(( 10 * i + j) + " ") //将打印11 12 13 21 22 23 31 32 33 
+11 12 13 21 22 23 31 32 33 
+```
+
+每个生成器都可以带一个守卫，以if开头的Boolean表达式（注意在if之前没有分号）：
+
+```
+scala> for( i <- 1 to 3;j <- 1 to 3 if i != j)print((10 * i + j) + " ")
+12 13 21 23 31 32 
+```
+
+可以使用任意多的定义，引入可以在循环中使用的变量：
+
+```
+scala> for( i <- 1 to 3; from = 4 - i; j <- from to 3) print((10 * i + j) + " ")
+13 22 23 31 32 33 
+```
+
+如果for循环的循环体以yield开始，则该循环会构造出一个集合，每次迭代生成集合中的一个值：
+
+
 
