@@ -428,3 +428,17 @@ res5: Int = 720
 
 提示：虽然在带名函数中使用return并没有什么不对（除了多打几个字母之外），我们最好适应没有return的日子。之后在会使用到大量的匿名函数，这些函数中return并不返回值给调用者。它跳出到包含它的带名函数中。我们可以把return当做是函数版的break语句，仅在需要时使用。
 
+对于递归函数，我们必须指定返回类型。例如：
+scala> def fac(n : Int):Int = {
+     | if(n <= 0) 1 else n*fac(n - 1)
+     | }
+fac: (n: Int)Int
+scala> fac(3)
+res0: Int = 6
+scala> fac(6)
+res1: Int = 720
+
+如果没有返回类型，Scala编译器无法校验n*fac(n - 1)的类型是Int。
+
+
+2.8 默认参数和带名参数
