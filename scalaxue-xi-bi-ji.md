@@ -198,15 +198,16 @@ val age = readInt\(\)
 
 printf\(" Hello, %s! Next year, your will be %d. \n", name , age + 1\)
 
-**注意：早期的Scala中`Console`类提供了一系列的终端输入方法，在现在的版本中这些方法已经被废弃。**
+**注意：早期的Scala中**`Console`**类提供了一系列的终端输入方法，在现在的版本中这些方法已经被废弃。**
 
-* **当前版本的Scala获取终端输入需要使用包`scala.io.StdIn`中的相关方法。**
+* **当前版本的Scala获取终端输入需要使用包**`scala.io.StdIn`**中的相关方法。**
 * `scala.io.StdIn`中的相关方法签名与先前的`Console`类中完全相同。
-* **使用`readLine()`获取单行文本输入，返回`String`类型。**
-* **使用`readInt()/readFloat()/readChar()/readLong()...`等方法获取特定类型的输出，当输入的内容不匹配时，会抛出异常。**
-* **使用`readf()/readf1()/readf2()/readf3()`等方法能以`java.text.MessageFormat`语法格式化接收的终端输入。**
+* **使用**`readLine()`**获取单行文本输入，返回**`String`**类型。**
+* **使用**`readInt()/readFloat()/readChar()/readLong()...`**等方法获取特定类型的输出，当输入的内容不匹配时，会抛出异常。**
+* **使用**`readf()/readf1()/readf2()/readf3()`**等方法能以**`java.text.MessageFormat`**语法格式化接收的终端输入。**
 
-详情参见：Scala学习笔记\(4\) - CSDN博客[http://blog.csdn.net/u011152627/article/details/50934769](http://blog.csdn.net/u011152627/article/details/50934769)
+详情参见：Scala学习笔记\(4\) - CSDN博客  
+[http://blog.csdn.net/u011152627/article/details/50934769](http://blog.csdn.net/u011152627/article/details/50934769)
 
 如下代码所示：
 
@@ -251,7 +252,7 @@ Answer: 26
 
 scala> printf("Hello , %s ! You are %d years old . \n ", "Fred", 36)
 Hello , Fred ! You are 36 years old . 
- 
+
 scala> val name = readLine("Your name:")
 warning: there was one deprecation warning; re-run with -deprecation for details
 Your name:name: String = sym
@@ -272,8 +273,6 @@ int: Int = 200
 
 scala> val double = scala.io.StdIn.readDouble()
 double: Double = 36.66
-
-
 ```
 
 ## **2.5 循环**
@@ -289,7 +288,6 @@ scala> for(x <- 1 to 10)
 
 scala> r
 res10: Int = 55
-
 ```
 
 在第1章中的RichInt类中曾提到过这个to方法。1 to n这个调用返回数字1到数字n（包含）的Range（区间）。
@@ -316,7 +314,6 @@ scala> for (i <- 0 until s.length)               //i的最后一个取值是s.le
 
 scala> sum
 res18: Int = 500
-
 ```
 
 在本例中，事实上我们并不需要使用下标。可以直接遍历对应的字符序列：
@@ -330,7 +327,6 @@ scala> for( ch <- "Hello")
 
 scala> sum
 res20: Int = 500
-
 ```
 
 **在Scala中，对循环的使用通常可以通过对序列中的所有值应用某个函数的方式来处理，而完成这项工作只需要一次方法调用即可。**
@@ -355,7 +351,6 @@ scala> breakable{
 
 scala> res
 res23: Int = 1
-
 ```
 
 在这里，控制权的转移是通过抛出和捕获异常完成的，因此，如果时间很重要的话，应该尽量避免使用这套机制。
@@ -368,24 +363,45 @@ res23: Int = 1
 
 ```
 scala> for( i <- 1 to 3; j <- 1 to 3)print(( 10 * i + j) + " ") //将打印11 12 13 21 22 23 31 32 33 
-11 12 13 21 22 23 31 32 33 
+11 12 13 21 22 23 31 32 33
 ```
 
 每个生成器都可以带一个守卫，以if开头的Boolean表达式（注意在if之前没有分号）：
 
 ```
 scala> for( i <- 1 to 3;j <- 1 to 3 if i != j)print((10 * i + j) + " ")
-12 13 21 23 31 32 
+12 13 21 23 31 32
 ```
 
 可以使用任意多的定义，引入可以在循环中使用的变量：
 
 ```
 scala> for( i <- 1 to 3; from = 4 - i; j <- from to 3) print((10 * i + j) + " ")
-13 22 23 31 32 33 
+13 22 23 31 32 33
 ```
 
 如果for循环的循环体以yield开始，则该循环会构造出一个集合，每次迭代生成集合中的一个值：
+
+for\( i &lt;- 1 to 10 \) yield i % 3             //生成Vector\(1, 2, 0, 1, 2, 0, 1, 2, 0, 1\)
+
+这类循环叫做for推导式。for推导式生成的集合与它的第一个生成器是类型兼容的。
+
+```
+scala> for( c <- "Hello"; i <- 0 to 1) yield (c + i).toChar
+res0: String = HIeflmlmop                    //将字符串c中的每个字符对应的ASCII码加一，然后转换为对应的字符。
+
+scala> for( i <- 0 to 1; c <- "Hello") yield (c + i).toChar
+res1: scala.collection.immutable.IndexedSeq[Char] = Vector(H, e, l, l, o, I, f, m, m, p)
+
+```
+
+说明：如果愿意，也可以将生成器、守卫和定义包含在花括号当中，并可以以换行的方式而不是分号来隔开它们：
+
+```
+for{ i <- 1 to 3 
+     | from = 4 - i
+     | j <- from to 3 }
+```
 
 
 
