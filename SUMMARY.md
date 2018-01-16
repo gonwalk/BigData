@@ -5,4 +5,5 @@
 * [Storm入门](Storm入门.md)
 * [Data Integration](data-integration.md)
 * [Hive](hive.md)
+* [Scala学习笔记](scalaxue-xi-bi-ji.md)
 
