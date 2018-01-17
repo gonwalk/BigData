@@ -846,7 +846,8 @@ cmd: scala.collection.mutable.Buffer[String] = ArrayBuffer(ls, -al, /home/test)
 
 课后习题练习及答案
 
-参考  快学Scala-第三章 数组相关操作 - 开心咿呀 - 博客园[ https://www.cnblogs.com/yiruparadise/p/5519649.html](https://www.cnblogs.com/yiruparadise/p/5519649.html)
+参考  快学Scala-第三章 数组相关操作 - 开心咿呀 - 博客园  
+[ https://www.cnblogs.com/yiruparadise/p/5519649.html](https://www.cnblogs.com/yiruparadise/p/5519649.html)
 
 1.编写一段代码，将a设置为一个n个随机整数的数组，要求随机数介于0（包含）和n\(不包含\)之间
 
@@ -855,13 +856,13 @@ class test{
   def main(args:Array[Int]){
     getArr(10).foreach(println)
   }
-  
+
   def getArr(n:Int): Array[Int] = {
     val a = new Array[Int](n)
     val rand = new scala.util.Random()
     for(i <- a) yield rand.nextInt()
   }
-  
+
 }
 ```
 
@@ -874,7 +875,7 @@ class test{
     revert(arr)
     arr.foreach(println)
   }
-  
+
   def revert(a:Array[Int]) = {
     for(i <- 0 until (a.length - 1,2)){
       val t = a(i)
@@ -894,7 +895,7 @@ class test{
     val b = revertYield(a)
     b.foreach(println)
   }
-  
+
   def revertYield(a:Array[Int]) = {
     for(i <- 0 until a.length) yield { 
       if( i < (a.length - 1) && i % 2 == 0){
@@ -918,7 +919,7 @@ class test{
     val b = revertYield(a)
     b.foreach(println)
   }
-  
+
   def revertYield(a:Array[Int]) = {
     for(i <- 0 until a.length) yield { 
       if( i < (a.length - 1) && i % 2 == 0){
@@ -942,7 +943,7 @@ class test{
     val b = average(a)
     println(b)
   }
-  
+
   def average(a:Array[Double]) = {
     var t = 0.0
     for(i <- a){
@@ -950,7 +951,7 @@ class test{
     }
     t/a.length
   }
-  
+
   def ave(a:Array[Double]) = {
      a.sum / a.length
   }
@@ -970,7 +971,7 @@ object Hello {
     a.foreach(println)
     val b = a.reverse //将a的值逆序回去了
      b.foreach(println)
-    
+
     println("bufferArray reverse:")
     val c = ArrayBuffer(6,7,8,9,0);
     val d = c.reverse        
@@ -1045,7 +1046,7 @@ object Hello
     var c = timeZoneName()
     c.foreach(println)
   }        
-  
+
   def timeZoneName() = {
     val arr = java.util.TimeZone.getAvailableIDs();
     val tmp = (for (i <- arr if i.startsWith("America/")) yield {
@@ -1072,6 +1073,44 @@ object Hello
      buf.foreach(println);
   }
 }
+```
+
+# 第4章 映射和元组
+
+_**一个经典的程序员名言是：“如果只能有一种数据结构，那就用哈希表吧。”哈希表——或者更笼统地说，映射——是最灵活多变的数据结构之一。**_
+
+映射是键/值对偶的集合。Scala有一个通用的叫法——元组——n个对象的聚集，并不一定要相同类型的。对偶不过是一个 n=2 的元组。元组对于那种需要将两个或更多值聚集在一起时特别有用。
+
+本章要点包括：
+
+* Scala有十分易用的语法来创建、查询和遍历映射。
+* 你需要从可变的和不可变的映射中做出选择。
+* 默认情况下，得到的是一个哈希映射，不过可以指明要树形映射。
+* 可以很容易地在Scala映射和Java映射之间来回切换。
+* 元组可以用来聚集值。
+
+## 4.1 构造映射
+
+可以使用如下的方式构造一个映射：
+
+```
+scala> val scores = Map("Alice" -> 10, "Bob" -> 3, "Cindy" -> 8)
+scores: scala.collection.immutable.Map[String,Int] = Map(Alice -> 10, Bob -> 3, Cindy -> 8)
+```
+
+上述代码构造出一个不可变的Map\[String, Int\]，其值不能被改变。如果想要一个可变映射，可以用
+
+```
+scala> val scores = scala.collection.mutable.Map("Alice" -> 10, "Bob" -> 3, "Cindy" -> 8)
+scores: scala.collection.mutable.Map[String,Int] = Map(Bob -> 3, Alice -> 10, Cindy -> 8)
+
+```
+
+如果要从一个空的映射开始，需要选定一个映射实现并给出类型参数：
+
+```
+scala> val scores = new scala.collection.mutable.HashMap[String, Int]
+scores: scala.collection.mutable.HashMap[String,Int] = Map()
 ```
 
 
