@@ -656,7 +656,6 @@ res30: Array[Int] = Array(4)
 
 scala> a.filter{ _ % 2 == 0 } map { _ *2 } 
 res31: Array[Int] = Array(4)
-
 ```
 
 示例：给定一个整数的数组缓冲，想要移除除第一个负数之外的所有负数。传统的依次执行的解决方案会在遇到第一个负数时置一个标记，然后移除后续出现的负数元素。
@@ -726,7 +725,6 @@ scala> scala.util.Sorting.quickSort(a)
 
 scala> a
 res35: Array[Int] = Array(1, 2, 7, 9)
-
 ```
 
 **对于min、max和quickSort方法，元素类型必须支持比较操作，这包括了数字、字符串及其他带有Ordered特质的类型。**
@@ -748,7 +746,6 @@ res38: String = [I@3ed2983b
 
 scala> b.toString                             //结果为"ArrayBuffer(1, 7, 2, 9)" ，toString方法报告了类型，便于调试
 res39: String = ArrayBuffer(1, 7, 2, 9)
-
 ```
 
 ## 3.6 解读Scaladoc
@@ -777,7 +774,6 @@ res47: b.type = ArrayBuffer(1, 7, 2, 9, 3, 6, 8, 4)
 
 scala> b += 5 -= 4                      //在数组缓冲中添加元素5，删去元素4
 res48: b.type = ArrayBuffer(1, 7, 2, 9, 3, 6, 8, 5)
-
 ```
 
 ## 3.7 多维数组
@@ -802,7 +798,6 @@ scala> for(i <- 0 until triangle.length)
 
 scala> triangle
 res52: Array[Array[Int]] = Array(Array(0), Array(0, 0), Array(0, 0, 0), Array(0, 0, 0, 0), Array(0, 0, 0, 0, 0), Array(0, 0, 0, 0, 0, 0), Array(0, 0, 0, 0, 0, 0, 0), Array(0, 0, 0, 0, 0, 0, 0, 0), Array(0, 0, 0, 0, 0, 0, 0, 0, 0), Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-
 ```
 
 要访问数组中的元素，使用两对圆括号，如：matrix\(行号\)\(列号\) = 数值
@@ -830,7 +825,6 @@ command: scala.collection.mutable.ArrayBuffer[String] = ArrayBuffer(ls, -al, /ho
 
 scala> val pb = new ProcessBuilder(command)            //Scala到Java的转换
 pb: ProcessBuilder = java.lang.ProcessBuilder@45967df8
-
 ```
 
 Scala缓冲被包装成了一个实现了java.util.List接口的Java类的对象。
@@ -846,8 +840,239 @@ import scala.collection.mutable.Buffer
 
 scala> val cmd:Buffer[String] = pb.command()            //不能使用ArrayBuffer——包装起来的对象仅能包装是个Buffer
 cmd: scala.collection.mutable.Buffer[String] = ArrayBuffer(ls, -al, /home/test)
-
 ```
 
-如果Java方法返回一个包装过的Scala缓冲，那么隐式转换会将原始的对象解包出来。拿本例来说，cmd == command
+如果Java方法返回一个包装过的Scala缓冲，那么隐式转换会将原始的对象解包出来。拿本例来说，cmd == command。
+
+课后习题练习及答案
+
+参考  快学Scala-第三章 数组相关操作 - 开心咿呀 - 博客园[ https://www.cnblogs.com/yiruparadise/p/5519649.html](https://www.cnblogs.com/yiruparadise/p/5519649.html)
+
+1.编写一段代码，将a设置为一个n个随机整数的数组，要求随机数介于0（包含）和n\(不包含\)之间
+
+```
+class test{
+  def main(args:Array[Int]){
+    getArr(10).foreach(println)
+  }
+  
+  def getArr(n:Int): Array[Int] = {
+    val a = new Array[Int](n)
+    val rand = new scala.util.Random()
+    for(i <- a) yield rand.nextInt()
+  }
+  
+}
+```
+
+2.编写一个循环，将整数数组中相邻的元素置换
+
+```
+class test{
+  def main(args:Array[Int]){
+    val arr = Array(1,2,3,4,5)
+    revert(arr)
+    arr.foreach(println)
+  }
+  
+  def revert(a:Array[Int]) = {
+    for(i <- 0 until (a.length - 1,2)){
+      val t = a(i)
+      a(i) = a(i+1)
+      a(i+1) = t
+    }
+  }
+}
+```
+
+3.重复前一个练习，不过这次生成一个新的值交换过的数组。用for/yield。
+
+```
+class test{
+  def main(args:Array[Int]){
+    val a = Array(1,2,3,4,5)
+    val b = revertYield(a)
+    b.foreach(println)
+  }
+  
+  def revertYield(a:Array[Int]) = {
+    for(i <- 0 until a.length) yield { 
+      if( i < (a.length - 1) && i % 2 == 0){
+        //偶数下标时，则交换下一个相邻的元素值
+        val t = a(i)
+        a(i) = a(i+1)
+        a(i+1) = t
+      }
+      a(i) //因为生成新的数组，每一个元素都要返回
+    }
+  }
+}
+```
+
+4.给定一个整数数组，产出一个新的数组，包含元数组中的所有正值，以原有顺序排列，之后的元素是所有零或负值，以原有顺序排列。
+
+```
+class test{
+  def main(args:Array[Int]){
+    val a = Array(1,2,3,4,5)
+    val b = revertYield(a)
+    b.foreach(println)
+  }
+  
+  def revertYield(a:Array[Int]) = {
+    for(i <- 0 until a.length) yield { 
+      if( i < (a.length - 1) && i % 2 == 0){
+        //偶数下标时，则交换下一个相邻的元素值
+        val t = a(i)
+        a(i) = a(i+1)
+        a(i+1) = t
+      }
+      a(i) //因为生成新的数组，每一个元素都要返回
+    }
+  }
+}
+```
+
+5.如何计算Array\[Double\]的平均值？
+
+```
+class test{
+  def main(args:Array[Int]){
+    val a = Array(1.0,5.6,0.0,-3.0)
+    val b = average(a)
+    println(b)
+  }
+  
+  def average(a:Array[Double]) = {
+    var t = 0.0
+    for(i <- a){
+      t += i
+    }
+    t/a.length
+  }
+  
+  def ave(a:Array[Double]) = {
+     a.sum / a.length
+  }
+}
+```
+
+6.如何重新组织Array\[Int\]的元素将它们反序排列？对于ArrayBuffer\[Int\]你又会怎么做呢？
+
+```
+import scala.collection.mutable.ArrayBuffer
+
+object Hello {       
+  def main(args: Array[String]) {          
+  val a = Array(1,2,3,4,5)
+    reverseArray(a)
+    println("array reverse:")
+    a.foreach(println)
+    val b = a.reverse //将a的值逆序回去了
+     b.foreach(println)
+    
+    println("bufferArray reverse:")
+    val c = ArrayBuffer(6,7,8,9,0);
+    val d = c.reverse        
+    d.foreach(println)
+  }     
+  def reverseArray(a:Array[Int]) = {
+    for( i <- 0 until (a.length / 2)){
+      val t = a(i)
+      a(i) = a(a.length-1-i)
+      a(a.length-1-i)=t
+    }
+  }
+}
+```
+
+7.编写一段代码，产出数组中的所有值，去掉重复项
+
+```
+import scala.collection.mutable.ArrayBuffer
+
+object Hello {       
+  def main(args: Array[String]) {          
+    val ab = new ArrayBuffer[Int]()
+    val c = new ArrayBuffer[Int]()
+    println("Input the array line,separated by a space,ended with an enter.")
+    val input = readLine().toString().split(' ');
+    for(i <- input){
+      ab += i.toInt
+    }
+//    ab.foreach(println)
+    c ++= ab.distinct
+    c.foreach(println) 
+  }     
+}
+```
+
+8.重新编写3.4节结尾的示例。收集负值元素的下标，反序，去掉最后一个下标，然后对每一个下标调用a.remove\(i\)。比较这样做的效率和3.4节中另外两种方法的效率
+
+```
+import scala.collection.mutable.ArrayBuffer
+
+object Hello {       
+  def main(args: Array[String]) {          
+    val a = ArrayBuffer(1,2,4,-2,0,-1,-4,8)
+    deleteNeg(a)
+    a.foreach(println) 
+  }  
+  def deleteNeg(a:ArrayBuffer[Int]) = {
+    val indexes = for(i <- 0 until a.length if a(i) < 0 ) yield  i 
+    //不能val b = indexex.reverse.trimEnd(1) reverse后，它是一个Seq序列。
+    //value trimEnd is not a member of scala.collection.immutable.IndexedSeq[Int]
+    val b = new ArrayBuffer[Int]()
+    b ++= indexes.reverse
+    b.trimEnd(1)
+    //remove是ArrayBuffer的函数,如果传入的是Array，则需要调用toBuffer
+    for(i <- b){
+      a.remove(i)
+    }
+  }
+}
+```
+
+9.创建一个由java.util.TimeZone.getAvailableIDs返回的时区集合，判断条件是它们在美洲，去掉”America/“前缀并排序。
+
+```
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConversions.asScalaBuffer
+
+object Hello
+{
+  def main(args: Array[String])  = {
+    var c = timeZoneName()
+    c.foreach(println)
+  }        
+  
+  def timeZoneName() = {
+    val arr = java.util.TimeZone.getAvailableIDs();
+    val tmp = (for (i <- arr if i.startsWith("America/")) yield {
+      i.drop("America/".length)
+    })
+    scala.util.Sorting.quickSort(tmp)
+    tmp
+  }
+}
+```
+
+10.引入java.awt.datatransfer.\_并构建一个类型为SystemFlavorMap类型的对象，然后以DataFlavor.imageFlavor为参数调用getNativesForFlavor方法，以Scala缓冲保存返回值。
+
+```
+import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.mutable.Buffer
+import java.awt.datatransfer._
+
+object Hello
+{
+  def main(args: Array[String])  = {
+     val flavors = SystemFlavorMap.getDefaultFlavorMap().asInstanceOf[SystemFlavorMap]
+     val buf : Buffer[String] = flavors.getNativesForFlavor(DataFlavor.imageFlavor);
+     buf.foreach(println);
+  }
+}
+```
+
+
 
