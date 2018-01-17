@@ -442,12 +442,6 @@ res1: Int = 720
 
 2.8 默认参数和带名参数
 
-
-
-
-
-
-
 # 第3章 数组相关操作
 
 本章要点包括：
@@ -478,7 +472,6 @@ scala> s(0) = "Goodbye"                //修改数组s中下标为0的元素的�
 
 scala> s                                
 res2: Array[String] = Array(Goodbye, World)
-
 ```
 
 **在JVM中，Scala的Array以Java数组方式实现。**示例中的数组在JVM中的类型为java.lang.String\[\]。Int、Double或其他与Java中基本类型对应的数组都是基本类型数组。如Array\(2, 3, 5, 7, 11\)在JVM中就是一个int\[\]。
@@ -552,7 +545,6 @@ scala> b.remove(2, 3)                  //从下标为2的位置开始移除元�
 
 scala> b.toArray                       //将ArrayBuffer数组缓冲转换成Array
 res18: Array[Int] = Array(1, 1, 2)
-
 ```
 
 有时需要构建一个Array，但不知道最终需要装多少个元素。在这种情况下，先构建一个数组缓冲，然后调用：
@@ -567,7 +559,6 @@ c: Array[Int] = Array(1, 1, 2)
 
 scala> c.toBuffer
 res19: scala.collection.mutable.Buffer[Int] = ArrayBuffer(1, 1, 2)
-
 ```
 
 ## 3.3 遍历数组和数组缓冲。
@@ -576,7 +567,9 @@ res19: scala.collection.mutable.Buffer[Int] = ArrayBuffer(1, 1, 2)
 
 for\(i &lt;- 0 until  a.length\)                                    //变量i的取值从0到a.length - 1
 
-    println\(i + ":" + a\(i\)\)
+```
+println\(i + ":" + a\(i\)\)
+```
 
 ```
 scala> var a = 0 until 10
@@ -611,7 +604,7 @@ until是RichInt类的方法，返回所有小于（但不包含）上限的数�
 ```
 scala> for(elem <- a)
      | print(elem + " ")
-0 1 2 3 4 5 6 7 8 9 
+0 1 2 3 4 5 6 7 8 9
 ```
 
 ## 3.4 数组转换
@@ -632,7 +625,6 @@ res23: Array[Int] = Array(2, 3, 5, 7, 11)
 
 scala> result
 res24: Array[Int] = Array(4, 6, 10, 14, 22)
-
 ```
 
 _**for\(...\) yield 循环创建了一个类型与原始集合相同的新集合。**_**如果从数组出发，那么得到的是另一个数组。如果从数组缓冲你出发，那么在for\(...\) yield 之后得到的也是一个数组缓冲。结果包含yield之后的表达式的值，每次迭代对应一个。**
@@ -655,4 +647,207 @@ res29: Array[Int] = Array(4, 6, 10, 14, 22)
 ```
 
 **注意：使用for\(...\) yield 语句的结果是一个新的集合，原始集合并没有收到yield之后语句的影响而改变。yield有产生、产出、生成；屈服；收益的意思，这里应该理解为“产出，生成，输出”的意思。**
+
+说明：另一种做法是a.filter\(_ % 2 ==\).map\(2 \* _\)，甚至a.filter{ _  %  2 == 0} map {2 \* _\_}。
+
+```
+scala> a.filter(_ % 2 == 0).map(2 * _)
+res30: Array[Int] = Array(4)
+
+scala> a.filter{ _ % 2 == 0 } map { _ *2 } 
+res31: Array[Int] = Array(4)
+
+```
+
+示例：给定一个整数的数组缓冲，想要移除除第一个负数之外的所有负数。传统的依次执行的解决方案会在遇到第一个负数时置一个标记，然后移除后续出现的负数元素。
+
+```
+var first = true
+var n = a.length
+var i = 0
+while(i < n){
+    if(a(i)>= 0) i += 1
+        else {
+            if(first) { first = false; i += 1 }
+            else { a.remove(i); n -= 1 }
+        }
+    }
+```
+
+上述方案并不太好：从数组缓冲中移除元素并不高效，把非负值拷贝到前端要好得多。
+
+```
+//首先收集需要保留的下标
+var first = true
+val indexes = for(i <- 0 until a.length if first || a(i) >= 0) yield {
+    if(a(i) < 0) first = false; i
+}
+//然后将元素移动到该去的位置，并截断尾端：
+for(j <- 0 until indexes.length) a(j) = a(indexes(j))
+a.trimEnd(a.length - indexes.length)
+```
+
+这里的关键是，拿到所有的下标好过逐个处理。
+
+## 3.5 常用算法
+
+Scala有內建的函数来处理业务运算，如求和与排序等。
+
+**要使用sum方法求和，元素的类型必须是数值类型：整型、浮点数、BigInteger、BigDecimal等。同理，min和max输出数组或数组缓冲中最小和最大的元素，但其除了可以比较数值类型数据的大小外，还可以比较字符串的大小。**
+
+_**sorted方法将数组或数组缓冲排序并返回经过排序的数组或数组缓冲，这个过程并不会修改原始版本。**_
+
+```
+scala> Array(1, 7, 2, 9).sum            //对ArrayBuffer同样适用
+res32: Int = 19
+
+scala> ArrayBuffer("Mary", "had", "a", "little", "lamb").max
+res33: String = little
+
+scala> val b = ArrayBuffer(1, 7, 2, 9)
+b: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1, 7, 2, 9)
+
+scala> val bSorted = b.sorted(_ < _)                    //b没有被改变，bSorted是ArrayBuffer(1,2, 7, 9)
+```
+
+还可以提供一个比较函数，不过需要使用到sortWith方法：
+
+```
+scala> val bDescending = b.sorted(_ > _)                 //ArrayBuffer(9,7,2,1)
+```
+
+**注意：可以直接对一个数组进行排序，但是不能对数组缓冲进行排序。使用scala.util.Sorting中的quickSort\(\)方法进行排序后，原来的待排序的集合发生改变，变成排序之后的内容。**
+
+```
+scala> val a = Array(1, 7, 2, 9)
+a: Array[Int] = Array(1, 7, 2, 9)
+
+scala> scala.util.Sorting.quickSort(a)
+
+scala> a
+res35: Array[Int] = Array(1, 2, 7, 9)
+
+```
+
+**对于min、max和quickSort方法，元素类型必须支持比较操作，这包括了数字、字符串及其他带有Ordered特质的类型。**
+
+如果要显示数组或数组缓冲的内容，可以用mkString方法，它允许指定元素之间的分隔符。该方法的另一个重载版本可以指定前缀和后缀。
+
+```
+scala> a
+res35: Array[Int] = Array(1, 2, 7, 9)
+
+scala> a.mkString(" and ")                    //结果为"1 and 2 and 7 and 9"
+res36: String = 1 and 2 and 7 and 9
+
+scala> a.mkString("<", ",", ">")              //结果为"<1,2,7,9>"
+res37: String = <1,2,7,9>
+
+scala> a.toString                             //这里被调用的是来自Java的毫无意义的toString方法
+res38: String = [I@3ed2983b
+
+scala> b.toString                             //结果为"ArrayBuffer(1, 7, 2, 9)" ，toString方法报告了类型，便于调试
+res39: String = ArrayBuffer(1, 7, 2, 9)
+
+```
+
+## 3.6 解读Scaladoc
+
+**由于Scala的类型系统比Java更丰富，在浏览Scala的文档时，可能会遇到一些看上去很奇怪的语法。所幸，你并不需要理解类型系统的所有细节就可以完成很多有用的工作。可以把表3-1用做“解码指环”。**
+
+![](/assets/Scaladoc解码一.png)![](/assets/Scaladoc解码二.png)
+
+```
+scala> b
+res42: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1, 7, 2, 9)
+
+scala> b.append(3, 6, 8)                //在数组缓冲b中添加多个元素：3,6，9
+
+scala> b
+res44: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1, 7, 2, 9, 3, 6, 8)
+
+scala> a
+res45: Array[Int] = Array(1, 2, 7, 9)
+
+scala> a.count(_ > 6)                    //统计数组a中大于6的元素的个数
+res46: Int = 2
+
+scala> b += 4 -= 5
+res47: b.type = ArrayBuffer(1, 7, 2, 9, 3, 6, 8, 4)
+
+scala> b += 5 -= 4                      //在数组缓冲中添加元素5，删去元素4
+res48: b.type = ArrayBuffer(1, 7, 2, 9, 3, 6, 8, 5)
+
+```
+
+## 3.7 多维数组
+
+**和Java一样，多维数组是通过数组的数组来实现的。如：Double的二维数组类型为Array\[Array\[Double\]\]。要构造这样一个数组，可以用ofDim方法：**
+
+```
+scala> val matrix = Array.ofDim[Double](3,4)                         //定义三行四列的数组，初始值都为0.0
+matrix: Array[Array[Double]] = Array(Array(0.0, 0.0, 0.0, 0.0), Array(0.0, 0.0, 0.0, 0.0), Array(0.0, 0.0, 0.0, 0.0))
+
+scala> matrix(2)(3) = 23                                             //将二行三列的元素设置为23
+
+scala> matrix
+res50: Array[Array[Double]] = Array(Array(0.0, 0.0, 0.0, 0.0), Array(0.0, 0.0, 0.0, 0.0), Array(0.0, 0.0, 0.0, 23.0))
+
+//创建不规则的数组，每一行的长度各不相同
+scala> val triangle = new Array[Array[Int]](10)
+triangle: Array[Array[Int]] = Array(null, null, null, null, null, null, null, null, null, null)
+
+scala> for(i <- 0 until triangle.length)
+     | triangle(i) = new Array[Int](i + 1)
+
+scala> triangle
+res52: Array[Array[Int]] = Array(Array(0), Array(0, 0), Array(0, 0, 0), Array(0, 0, 0, 0), Array(0, 0, 0, 0, 0), Array(0, 0, 0, 0, 0, 0), Array(0, 0, 0, 0, 0, 0, 0), Array(0, 0, 0, 0, 0, 0, 0, 0), Array(0, 0, 0, 0, 0, 0, 0, 0, 0), Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+
+```
+
+要访问数组中的元素，使用两对圆括号，如：matrix\(行号\)\(列号\) = 数值
+
+## 3.8 与Java的互操作
+
+由于Scala数组是用Java数组实现的，可以在Java和Scala之间来回传递。
+
+**可以引入scala.collection.JavaConversions里的隐式转换方法，这样就可以在代码中使用Scala缓冲，在调用Java方法时，这些对象会被自动包装成Java列表。**
+
+举例来说，java.lang.ProcessBuilder类有一个以List&lt;String&gt;为参数的构造器。以下是在Scala中调用它的写法：
+
+```
+scala> import scala.collection.JavaConversions.bufferAsJavaList
+import scala.collection.JavaConversions.bufferAsJavaList
+
+scala> import scala.collection.mutable.ArrayBu
+ArrayBuffer   ArrayBuilder
+
+scala> import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ArrayBuffer
+
+scala> val command = ArrayBuffer("ls", "-al", "/home/test")
+command: scala.collection.mutable.ArrayBuffer[String] = ArrayBuffer(ls, -al, /home/test)
+
+scala> val pb = new ProcessBuilder(command)            //Scala到Java的转换
+pb: ProcessBuilder = java.lang.ProcessBuilder@45967df8
+
+```
+
+Scala缓冲被包装成了一个实现了java.util.List接口的Java类的对象。
+
+反过来，当Java方法返回java.util.List时，可以让它自动转换成一个Buffer：
+
+```
+scala> import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.JavaConversions.asScalaBuffer
+
+scala> import scala.collection.mutable.Buffer
+import scala.collection.mutable.Buffer
+
+scala> val cmd:Buffer[String] = pb.command()            //不能使用ArrayBuffer——包装起来的对象仅能包装是个Buffer
+cmd: scala.collection.mutable.Buffer[String] = ArrayBuffer(ls, -al, /home/test)
+
+```
+
+如果Java方法返回一个包装过的Scala缓冲，那么隐式转换会将原始的对象解包出来。拿本例来说，cmd == command
 
