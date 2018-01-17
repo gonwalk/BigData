@@ -428,17 +428,231 @@ res5: Int = 720
 
 提示：虽然在带名函数中使用return并没有什么不对（除了多打几个字母之外），我们最好适应没有return的日子。之后在会使用到大量的匿名函数，这些函数中return并不返回值给调用者。它跳出到包含它的带名函数中。我们可以把return当做是函数版的break语句，仅在需要时使用。
 
-对于递归函数，我们必须指定返回类型。例如：
-scala> def fac(n : Int):Int = {
-     | if(n <= 0) 1 else n*fac(n - 1)
-     | }
-fac: (n: Int)Int
-scala> fac(3)
-res0: Int = 6
-scala> fac(6)
+对于递归函数，我们必须指定返回类型。例如：  
+scala&gt; def fac\(n : Int\):Int = {  
+     \| if\(n &lt;= 0\) 1 else n\*fac\(n - 1\)  
+     \| }  
+fac: \(n: Int\)Int  
+scala&gt; fac\(3\)  
+res0: Int = 6  
+scala&gt; fac\(6\)  
 res1: Int = 720
 
-如果没有返回类型，Scala编译器无法校验n*fac(n - 1)的类型是Int。
-
+如果没有返回类型，Scala编译器无法校验n\*fac\(n - 1\)的类型是Int。
 
 2.8 默认参数和带名参数
+
+
+
+
+
+
+
+# 第3章 数组相关操作
+
+本章要点包括：
+
+* **若长度固定则使用Array，若长度可能有变化则使用ArrayBuffer。**
+* _**提供初始值时不要使用new。**_
+* _**Scala中使用\(\)而不是\[\]来访问元素。**_
+* _**用for\(elem &lt;- arr\)来遍历元素。**_
+* **用for\(elem &lt;- arr  if ...\) ...yield ...来将原数组转型为新数组。**
+* **Scala数组和Java数组可以互操作；用ArrayBuffer，使用scala.collection.JavaConversions中的转换函数。**
+
+## 3.1 定长数组
+
+如果你需要一个长度不变的数组，可以使用Scala中的Array。例如：
+
+```
+scala> val name = new Array[Int](10)                               //10个整数的数组，所有元素初始化为0
+scala> val a = new Array[String](10)                               //10个元素的字符串数组，所有元素初始化为null
+a: Array[String] = Array(null, null, null, null, null, null, null, null, null, null)
+
+scala> val s = Array("Hello", "World") //长度为2的Array[String]--类型是推断出来的，说明：已提供初始值就不需要使用new
+s: Array[String] = Array(Hello, World)
+
+scala> s(0)                            //Scala中使用()而不是[]来访问元素
+res0: String = Hello
+
+scala> s(0) = "Goodbye"                //修改数组s中下标为0的元素的值
+
+scala> s                                
+res2: Array[String] = Array(Goodbye, World)
+
+```
+
+**在JVM中，Scala的Array以Java数组方式实现。**示例中的数组在JVM中的类型为java.lang.String\[\]。Int、Double或其他与Java中基本类型对应的数组都是基本类型数组。如Array\(2, 3, 5, 7, 11\)在JVM中就是一个int\[\]。
+
+## 3.2 变长数组：数组缓冲
+
+**对于长度按需要变化的数组，Java有ArrayList，C++有vector。Scala中的等效数据结构为ArrayBuffer。在Scala中，可以使用+=在ArrayBuffer尾端添加同类型的元素 ；在尾端追加多个元素，以括号包起来； 用++=操作符**_**追加任何集合**_**。**
+
+    scala> import scala.collection.mutable.ArrayBuffer
+    import scala.collection.mutable.ArrayBuffer
+
+    scala> val b = ArrayBuffer[Int]()                  //或者new ArrayBuffer[Int]，一个空的数组缓冲，准备存放整数，其长度可变
+    b: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer()
+
+    scala> b += 1                                      //用+=在尾端添加元素                  
+    res3: b.type = ArrayBuffer(1)
+
+    scala> b
+    res4: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1)
+
+    scala> b(0)
+    res5: Int = 1
+
+    scala> b(1)                                        //目前b数组中只有1个元素（下标为0），无法取出第二个元素（下标为1）
+    java.lang.IndexOutOfBoundsException: 1
+      at scala.collection.mutable.ResizableArray$class.apply(ResizableArray.scala:43)
+      at scala.collection.mutable.ArrayBuffer.apply(ArrayBuffer.scala:48)
+      ... 32 elided
+
+    scala> b + = (1, 2, 3, 5)
+    <console>:15: error: missing argument list for method + in class any2stringadd
+    Unapplied methods are only converted to functions when a function type is expected.
+    You can make this conversion explicit by writing `$plus _` or `$plus(_)` instead of `$plus`.
+    val $ires0 = b.$plus
+                   ^
+    <console>:13: error: reassignment to val
+           b + = (1, 2, 3, 5)
+               ^
+
+    scala> b += (1, 2, 3, 5)
+    res7: b.type = ArrayBuffer(1, 1, 2, 3, 5)
+
+    scala> b ++= Array(8, 13, 21)                      //用++=操作符追加任何集合
+    res8: b.type = ArrayBuffer(1, 1, 2, 3, 5, 8, 13, 21)
+
+    scala> b.trimEnd(5)                                //移除最后5个元素
+
+    scala> b
+    res10: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1, 1, 2)
+
+**在数组缓冲的尾端添加或移除元素是一个高效的操作。也可以在任意位置插入或移除元素，但这样的操作并不那么高效——所有在那个位置之后的元素都必须被平移。**举例如下：
+
+```
+scala> b.insert(2, 6)                    //在下标2的位置插入元素6，原来的元素后移
+
+scala> b
+res12: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1, 1, 6, 2)
+
+scala> b.insert(2, 7, 8, 9)             //在下标2的位置插入多个元素7,8，9，原来在该位置的元素后移插入元素个数位
+
+scala> b
+res14: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1, 1, 7, 8, 9, 6, 2)
+
+scala> b.remove(2)                     //移除下标2位置上的元素
+res15: Int = 7
+
+scala> b
+res16: scala.collection.mutable.ArrayBuffer[Int] = ArrayBuffer(1, 1, 8, 9, 6, 2)
+
+scala> b.remove(2, 3)                  //从下标为2的位置开始移除元素，共移除3个元素
+
+scala> b.toArray                       //将ArrayBuffer数组缓冲转换成Array
+res18: Array[Int] = Array(1, 1, 2)
+
+```
+
+有时需要构建一个Array，但不知道最终需要装多少个元素。在这种情况下，先构建一个数组缓冲，然后调用：
+
+b.toArray                              //Array\(1, 1, 2\)
+
+反过来，调用c.toBuffer可以将一个数组c转换为一个数组缓冲。
+
+```
+scala> var c = b.toArray
+c: Array[Int] = Array(1, 1, 2)
+
+scala> c.toBuffer
+res19: scala.collection.mutable.Buffer[Int] = ArrayBuffer(1, 1, 2)
+
+```
+
+## 3.3 遍历数组和数组缓冲。
+
+在Java和C++中，数组和数组列表/向量有一些语法上的不同。Scala则更加统一。大多数时候可以用相同的代码处理这两种数据结构。以下是for循环遍历数组或数组缓冲的语法：
+
+for\(i &lt;- 0 until  a.length\)                                    //变量i的取值从0到a.length - 1
+
+    println\(i + ":" + a\(i\)\)
+
+```
+scala> var a = 0 until 10
+a: scala.collection.immutable.Range = Range(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+
+scala> for(i <- 0 until a.length)
+     | println(i + ":" + a(i))
+0:0
+1:1
+2:2
+3:3
+4:4
+5:5
+6:6
+7:7
+8:8
+9:9
+```
+
+until是RichInt类的方法，返回所有小于（但不包含）上限的数字。例如：0 until 10      //Range\(0,1,2,3,4,5,6,7,8,9\)。注意：0 until 10实际上是一个方法调用——0.until\(10\)。
+
+如果想要每两个元素一跳，可以让i这样来进行遍历：
+
+0 until \(a.length, 2\)                                              //Range\(0, 2, 4, 6, 8\)
+
+如果想要从数组的尾端开始，遍历的写法为：
+
+\(0 until  a.length\).reverse                                  //Range\(9, 8, 7, 6, 5 ,4,3,2,1, 0\)
+
+如果在循环体中不需要用到数组下标，也可以直接访问数组元素，如下的形式：
+
+```
+scala> for(elem <- a)
+     | print(elem + " ")
+0 1 2 3 4 5 6 7 8 9 
+```
+
+## 3.4 数组转换
+
+在Scala中，从一个数组或数组缓冲出发，以某种方式对它进行转换是很简单的。这些转换动作不会修改原始数组，而是产生一个全新的数组。
+
+像这样是使用for推导式：
+
+```
+scala> val a = Array(2, 3, 5, 7, 11)
+a: Array[Int] = Array(2, 3, 5, 7, 11)
+
+scala> val result = for(elem <- a) yield 2 * elem
+result: Array[Int] = Array(4, 6, 10, 14, 22)
+
+scala> a
+res23: Array[Int] = Array(2, 3, 5, 7, 11)
+
+scala> result
+res24: Array[Int] = Array(4, 6, 10, 14, 22)
+
+```
+
+_**for\(...\) yield 循环创建了一个类型与原始集合相同的新集合。**_**如果从数组出发，那么得到的是另一个数组。如果从数组缓冲你出发，那么在for\(...\) yield 之后得到的也是一个数组缓冲。结果包含yield之后的表达式的值，每次迭代对应一个。**
+
+通常，当遍历一个集合时，只想处理那些满足特定条件的元素。这个需求可以通过守卫：for中的if来实现。如：
+
+for\(elem &lt;-  a  if  elem  %  2 == 0\) yield 2 \* elem
+
+```
+scala> for(elem <- a if elem % 2 == 0) yield 2 * elem
+res25: Array[Int] = Array(4)
+
+scala> for(elem <- result if elem % 2 == 0) yield 2 * elem
+res26: Array[Int] = Array(8, 12, 20, 28, 44)
+scala> a
+res28: Array[Int] = Array(2, 3, 5, 7, 11)
+
+scala> result
+res29: Array[Int] = Array(4, 6, 10, 14, 22)
+```
+
+**注意：使用for\(...\) yield 语句的结果是一个新的集合，原始集合并没有收到yield之后语句的影响而改变。yield有产生、产出、生成；屈服；收益的意思，这里应该理解为“产出，生成，输出”的意思。**
+
