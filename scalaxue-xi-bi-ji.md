@@ -440,7 +440,241 @@ res1: Int = 720
 
 如果没有返回类型，Scala编译器无法校验n\*fac\(n - 1\)的类型是Int。
 
-2.8 默认参数和带名参数
+## 2.8 默认参数和带名参数
+
+在调用某些函数时并不显式地给出所有参数值，对于这些函数我们可以使用默认参数。例如，
+
+```
+scala> def decorate(str: String, left:String = "[", right:String = "]") = left + str + right
+decorate: (str: String, left: String, right: String)java.lang.String
+scala> decorate("hello")
+res2: java.lang.String = [hello]
+scala>
+scala> decorate("Hello", "<<<", ">>>")
+res3: java.lang.String = <<<Hello>>>
+```
+
+这个函数有两个参数，left和right，带有默认值“\[”和“\]”。
+
+如果相对参数的数量，给出的值不够，默认参数会从后往前逐个应用进来。如，decorate\("Hello", "&lt;&lt;&lt;\["\)会使用right参数的默认值，得到“&gt;&gt;&gt;\[Hello\]”。
+
+`scala> decorate("Hello", ">>>[")`
+
+`res4: java.lang.String = >>>[Hello]`
+
+`scala> decorate(left = "<<<", str = "Hello", right = ">>>")`
+
+`res5: java.lang.String = <<<Hello>>>`
+
+**注意：如上面的例子所示，带名参数并不需要跟参数列表的顺序完全一致。带名参数可以让函数更加可读。可以混用未命名参数和带名参数，只要将那些未命名的参数排在带名参数之前即可。**
+
+## 2.9 变长参数
+
+有时候，实现一个可以接受可变长度参数列表的函数会更加方便。其语法如下：
+
+scala&gt; def sum\(args: Int\*\) = {
+
+     \| var result = 0
+
+     \| for\(arg &lt;- args\) result += arg
+
+     \| result
+
+     \| }
+
+sum: \(args: Int\*\)Int
+
+scala&gt; val s = sum\(1, 4, 9, 16, 25\)
+
+s: Int = 55
+
+scala&gt; s
+
+res6: Int = 55
+
+scala&gt; val s1 = sum\(1 to 5: \_\*\)
+
+s1: Int = 15
+
+可以使用任意多的参数来调用该函数。如val s = sum\(1,2,3,4,5,6\) ， 函数得到的是一个类型为Seq的参数。
+
+如果你已经有一个值得序列，则不能直接将它传入上述函数。举例，如下面的写法是不对的：
+
+val s = sum\(2 to 8\)            //错误
+
+如果sum函数被调用时传入的是单个参数，那么该参数必须是单个整数，而不是一个整数区间解决这个问题的办法是告诉编辑器你希望这个参数被当做参数序列处理。追加：\_\*，就像下面这样：
+
+val  s = sum\(1 to 5: \_\*\)                //将1 to 5当做参数序列处理
+
+在递归定义当中可以看到上述语法：
+
+scala&gt; def recursiveSum\(args:Int\*\):Int = {
+
+     \| if\(args.length == 0\) 0
+
+     \| else args.head + recursiveSum\(args.tail: \_\*\)
+
+     \| }
+
+recursiveSum: \(args: Int\*\)Int
+
+scala&gt; recursiveSum\(28\)
+
+res7: Int = 28
+
+scala&gt; recursiveSum\(1 to 10\)
+
+&lt;console&gt;:9: error: type mismatch;
+
+found   : scala.collection.immutable.Range.Inclusive
+
+required: Int
+
+              recursiveSum\(1 to 10\)
+
+                             ^
+
+scala&gt; recursiveSum\(1,2,3,4,5,6,7,8\)
+
+res9: Int = 36
+
+
+
+**在这里，序列的head是它的首个元素，而tail是所有其他元素的序列，这又是一个Seq，我们用：\_\*来将它转换成参数序列。**
+
+**注意：当调用变长参数且参数类型为Object的Java方法，如PrintStream.printf或MessageFormat.format时，需要手工对基本类型进行转换。例如，**
+
+val str = MessageFormat.format\("The answer to {0} is {1}", "everything", 42.asInstanceOf\[AnyRef\]\)
+
+对于任何Object类型的参数都是这样，类似的参数在变长参数方法中使用得最多。
+
+## 2.10 过程
+
+
+
+Scala对于不返回值的函数有特殊的表示法。如果函数体包含在花括号当中但没有前面的=号，那么返回类型就是Unit。这样的函数被称为过程（procedure）。过程不返回值，我们调用它仅仅是为了它的副作用。由于过程不返回任何值，可以省去=号。如下面的例子：
+
+```
+scala> def box(s:String){
+     | var border = "-" * s.length + "--\n"
+     | println(border + "|" + s + "|\n" + border)
+     | }
+box: (s: String)Unit
+scala> box("Hello")
+-------
+|Hello|
+-------
+```
+
+## 2.11 懒值
+
+
+
+当val被声明为lazy时，它的初始化将被推迟，直到首次对它取值。例如：
+
+scala&gt; lazy val words = scala.io.Source.fromFile\("D:\\read.txt"\).mkString
+
+words: String = &lt;lazy&gt;
+
+如果程序从不访问words，那么文件也不会被打开。为了验证这个行为，可以在REPL中实验，但故意拼错文件名。在初始化语句被执行的时候并不会报错。不过，一旦访问了words，就将会得到一个错误的提示，文件未找到。
+
+
+
+懒值对于开销较大的初始化语句而言十分有用。它们还可以应对其他初始化问题，比如循环依赖。更重要的是，它们是开发懒数据结构的基础——参见13.13节。
+
+可以把懒值当做是介于val和def的中间状态。
+
+val words = scala.io.Source.fromFile\("/usr/share/dict/words"\).mkString
+
+        //在words被定义时即被取值
+
+lazy val words = scala.io.Source.fromFile\("/usr/share/dict/words"\).mkString
+
+        //在words被首次使用时取值
+
+def  words = scala.io.Source.fromFile\("/usr/share/dict/words"\).mkString
+
+        //在每一次words被使用时取值
+
+
+
+说明：懒值并不是没有额外开销。每次访问懒值，都会有一个方法被调用，而这个方法将会以线程安全的方式检查该值是否已被初始化。
+
+## 2.12 异常
+
+Scala异常的工作机制和Java或C++一样。当抛出异常时，比如：
+
+throw new IllegalArgumentException\("x should not be negative"\)
+
+当前的运算被中止，运行时系统查找可以接受IllegalArgumentException的异常处理器。控制权将在离抛出点最近的处理器中恢复。如果没有找到符合要求的异常处理器，则程序退出。
+
+和Java一样，抛出的对象必须是java.lang.Throwable的子类。不过，与Java不同的是，Scala没有“受检”异常——不需要声明说函数或方法可能会抛出某种异常。
+
+
+
+说明：在Java中，“受检”异常在编译期被检查。如果你的方法可能会抛出IOException，你必须做出声明。这就要求必须去了解哪些异常应该在哪里被处理。但这也催生出怪兽版的方法签名，比如void doSomething\(\) throws IOException, InterruptedException, ClassNotFoundException。许多程序员很反感这个特性，最终过早捕获这些异常，或者使用超通用的异常类。Scala的设计者们决定不支持“受检”异常，因为他们意识到彻底的编译期检查并不总是好的。
+
+
+
+throw表达式有特殊的类型Nothing。这在if/else表达式中很有用。如果一个分支的类型是Nothing，那么if/else表达式的类型就是另一个（非Nothing类型）分支的类型。举例来说：
+
+scala&gt; if\(x &gt; = 0 \) { sqrt\(x\)
+
+     \| }else throw new IllegalArgumentException\("x should not be negative"\)
+
+
+
+第一个分支类型是Double，第二个分支类型是Nothing。因此，if/else表达式的类型是Double。
+
+捕获异常的语法采用的是模式匹配的语法。
+
+try{
+
+    process\(new URL\("http://horstmann.com/fred-tiny.gif"\)\)
+
+} catch {
+
+    case \_: MalformedURLException =&gt; println\("Bad URL: " + url\)
+
+    case ex: IOException =&gt; ex.printStackTrace\(\)
+
+}
+
+和Java或C++一样，更通用的异常应该排在更具体的异常之后。
+
+
+
+注意：如果不需要使用捕获的异常对象，可以使用\_来替代变量名。
+
+try/finally语句可以用来释放资源，不论有没有异常发生。例如：
+
+var in = new URL\("http://horstmann.com/fred.gif"\).openStream\(\)
+
+try{
+
+    process\(in\)
+
+}finally{
+
+    in.close\(\)
+
+}
+
+finally语句不论process函数是否抛出异常都会执行，reader总会被关闭。
+
+![](/assets/异常处理.png)
+
+**注意：try/catch和try/finally的目的是互补的。try/catch语句处理异常，而try/finally语句在异常没有被处理时执行某种动作（通常是清理工作）。可以把它们结合在一起成为单个try/catch/finally语句：**
+
+try { ... } catch { .... } finally { ... }
+
+这和下面的语句一样：
+
+try { try { ... } catch { ... } } finally { ...}
+
+不过，这样组合在一起的写法几乎没有什么用。
+
+
 
 # 第3章 数组相关操作
 
@@ -1103,7 +1337,6 @@ scores: scala.collection.immutable.Map[String,Int] = Map(Alice -> 10, Bob -> 3, 
 ```
 scala> val scores = scala.collection.mutable.Map("Alice" -> 10, "Bob" -> 3, "Cindy" -> 8)
 scores: scala.collection.mutable.Map[String,Int] = Map(Bob -> 3, Alice -> 10, Cindy -> 8)
-
 ```
 
 如果要从一个空的映射开始，需要选定一个映射实现并给出类型参数：
