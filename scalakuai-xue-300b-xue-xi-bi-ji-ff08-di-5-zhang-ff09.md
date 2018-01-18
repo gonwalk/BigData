@@ -25,12 +25,6 @@ scala> println(myCounter.current)
 
 * **对于定义时不带圆括号\(\)的无参方法：调用时，不能带圆括号，如：myCounter.current带上会出错，提示该方法不带参数does not take parameters**
 
-
-
-
-
-
-
 ## 5.3 只带getter的属性
 
 有时候需要一个只读属性，即有getter但没有setter。如果属性的值在对象构建完成后就不再改变，可以使用val字段：
@@ -153,10 +147,10 @@ res14: String = zhangsan
 
 将会生成如下四个方法，这些方法就可以直接调用：
 
-1.  name:String
-2.  name\_ = \(newValue:String\):Unit
-3.  getName\(\):String
-4.  setName\(newValue:String\):Unit
+1. name:String
+2. name\_ = \(newValue:String\):Unit
+3. getName\(\):String
+4. setName\(newValue:String\):Unit
 
 说明：如果以主构造器参数的方式定义了某字段，并且需要JavaBeans版的getter和setter方法，像如下这样给构造器参数加上注释即可：class Person\(@BeanProperty var name:String\)
 
@@ -179,12 +173,12 @@ res14: String = zhangsan
 class Person {
     private var name = ""
     private var age = 0
-    
+
     def this(name:String) {        //一个辅助构造器
         this()                     //调用主构造器
         this.name = name
     }
-    
+
     def this(name:String, age: Int) {    //另一个辅助构造器
         this(name)                       //调用前一个辅助构造器
         this.age = age
@@ -234,6 +228,62 @@ class MyProg {
     props.load（new FileReader("myprog.properties"))
     //上述语句是主构造器的一部分
     ...
+}
+```
+
+**说明：如果类名之后没有参数，则该类具备一个无参主构造器。这样一个构造器仅仅是简单地执行类体中的所有语句而已。**
+
+提示：通常可以通过在主构造器中使用默认参数来避免过多地使用辅助构造器。例如：
+
+class Person\(val name:String = " ", val age: Int = 0\)
+
+主构造器的参数可以采用表5-1中列出的任意形态。例如：class Person\(**val** name: String, **private var** age: Int\)
+
+构造参数也可以是普通的方法参数，不带val或var。这样的参数如何处理取决于它们在类中如何被使用。
+
+* **如果不带val或者var的参数至少被一个方法所使用，它将被升格为字段。下面这段代码声明并初始化了不可变字段name和age，而这两个字段都是对象私有的。类似这样的字段等同于private\[this\]val 字段的效果。**例如：
+
+```
+class Person(name: String, age: Int) {
+    def description = name + " is " + age + " years old"
+}
+```
+
+* 否则，该参数将不被保存为字段。它仅仅是一个可以被主构造器中的代码访问的普通参数。（严格地说，这是一个具体实现相关的优化。）
+
+表5-2总结了不同类型的主构造器参数对应会生成的字段和方法。
+
+![](/assets/主构造器参数生成的字段和方法.png)
+
+**如果对主构造器的使用不熟悉，可以按照常规的做法提供一个或多个辅助构造器即可，不过要记得调用this\(\)。**_**为了便于理解，建议这样看待主构造器：在Scala中，类也接受参数，就像方法一样。**_
+
+_**说明：当把主构造器的参数看做是类参数时，不带val或var的参数就变得易于理解了。这样的参数的作用域涵盖了整个类。因此，可以在方法中使用它们。而一旦这样做了，编译器就自动帮你将它保存为字段。**_
+
+**如果想让主构造器变成私有的，可以像这样放置private关键字：**
+
+**class Person private\(val id: Int\) { ... } **
+
+**这样一来类用户就必须通过辅助构造器来构造Person对象了。**
+
+## 5.8 嵌套类
+
+在Scala中，几乎可在任何语法结构中内嵌任何语法结构。可以在函数中定义函数，在类中定义类。以下代码是在类中定义类的一个示例：
+
+```
+import scala.collection.mutable.ArrayBuffer
+
+class Network {
+    class Member（val name: String) {
+        val contacts = new ArrayBuffer[Member]
+    }
+    
+    private val members = new ArrayBuffer[Member]
+    
+    def join(name: String) = {
+        val m = new Member(name)
+        members += m
+        m                    //返回m的值，相当于return m
+    }
 }
 ```
 
