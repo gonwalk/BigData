@@ -6,4 +6,5 @@
 * [Data Integration](data-integration.md)
 * [Hive](hive.md)
 * [Scala学习笔记](scalaxue-xi-bi-ji.md)
+* [《Scala快学》学习笔记（第5章）](scalakuai-xue-300b-xue-xi-bi-ji-ff08-di-5-zhang-ff09.md)
 

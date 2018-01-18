@@ -466,7 +466,7 @@ res3: java.lang.String = <<<Hello>>>
 
 `res5: java.lang.String = <<<Hello>>>`
 
-**注意：如上面的例子所示，带名参数并不需要跟参数列表的顺序完全一致。带名参数可以让函数更加可读。可以混用未命名参数和带名参数，只要将那些未命名的参数排在带名参数之前即可。  
+**注意：如上面的例子所示，带名参数并不需要跟参数列表的顺序完全一致。带名参数可以让函数更加可读。可以混用未命名参数和带名参数，只要将那些未命名的参数排在带名参数之前即可。    
 **
 
 ## 2.9 变长参数
@@ -545,10 +545,10 @@ scala&gt; recursiveSum\(1,2,3,4,5,6,7,8\)
 
 res9: Int = 36
 
-**在这里，序列的head是它的首个元素，而tail是所有其他元素的序列，这又是一个Seq，我们用：\_\*来将它转换成参数序列。  
+**在这里，序列的head是它的首个元素，而tail是所有其他元素的序列，这又是一个Seq，我们用：\_\*来将它转换成参数序列。    
 **
 
-**注意：当调用变长参数且参数类型为Object的Java方法，如PrintStream.printf或MessageFormat.format时，需要手工对基本类型进行转换。例如，  
+**注意：当调用变长参数且参数类型为Object的Java方法，如PrintStream.printf或MessageFormat.format时，需要手工对基本类型进行转换。例如，    
 **
 
 val str = MessageFormat.format\("The answer to {0} is {1}", "everything", 42.asInstanceOf\[AnyRef\]\)
@@ -651,7 +651,7 @@ case ex: IOException =&gt; ex.printStackTrace\(\)
 
 try/finally语句可以用来释放资源，不论有没有异常发生。例如：
 
-var in = new URL\("[http://horstmann.com/fred.gif"\).openStream\(\](http://horstmann.com/fred.gif"%29.openStream%28\)\)
+var in = new URL\("\[[http://horstmann.com/fred.gif"\).openStream\(\]\(http://horstmann.com/fred.gif"\).openStream\(\)\](http://horstmann.com/fred.gif"%29.openStream%28]%28http://horstmann.com/fred.gif"%29.openStream%28%29\)\)
 
 try{
 
@@ -671,7 +671,7 @@ finally语句不论process函数是否抛出异常都会执行，reader总会被
 
 ![](/assets/异常处理.png)
 
-**注意：try/catch和try/finally的目的是互补的。try/catch语句处理异常，而try/finally语句在异常没有被处理时执行某种动作（通常是清理工作）。可以把它们结合在一起成为单个try/catch/finally语句：  
+**注意：try/catch和try/finally的目的是互补的。try/catch语句处理异常，而try/finally语句在异常没有被处理时执行某种动作（通常是清理工作）。可以把它们结合在一起成为单个try/catch/finally语句：    
 **
 
 try { ... } catch { .... } finally { ... }
