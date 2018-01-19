@@ -237,5 +237,83 @@ val fred = new Person{
 
 Null类型的唯一实例是null值。可以将null赋值给任何引用，但不能赋值给值类型的变量。如，不能将Int设为null。这比Java更好，在Java中可以将Integer包装类引用设为null。Nothing类型没有实例。它对于泛型结构时常有用。举例，空列表Nil的类型是List\[Nothing\]，它是List\[T\]的子类型，T可以是任何类。
 
-注意：Nothing类型和Java或C++中的void完全是两个概念。在Scala中，void由Unit类型表示，该类型只有一个值，那就是\(\)。注意Unit并不是任何其他类型的超类型。但是，编译器依然允许任何值被替换成\(\)。
+**注意：Nothing类型和Java或C++中的void完全是两个概念。在Scala中，void由Unit类型表示，该类型只有一个值，那就是**
+
+**\( \)。注意Unit并不是任何其他类型的超类型。但是，**_**编译器依然允许任何值被替换成\( \)。**_
+
+## 8.12 对象相等性
+
+在Scala中，AnyRef的eq方法检查两个引用是否指向同一个对象。AnyRef的equals方法调用eq。当实现类的时候，应该考虑重写equals方法，以提供一个自然、与实际情况相称的相等性判断。
+
+示例如，当定义class Item\(val description: String, val price: Double\)，可能会认为当两个物件有着相同描述和价格的时候它们是相等的。以下是相应的equals方法定义：
+
+```
+final override def equals(other:Any) = {
+    val that = other.asInstanceOf[Item]
+    if(that == null) false
+    else description == that.description && price == that.price
+}
+```
+
+**说明：将方法定义为final，是因为通常而言在子类中正确地扩展相等性判断非常困难。问题出在对称性上。想让a.equals\(b\)和b.equals\(a\)的结果相同，尽管b属于a的子类。**
+
+_**注意：请确保定义的equals方法参数类型为Any。**_以下代码是错误的：
+
+final def equals\(other: Item\) = { ... }
+
+这是一个不相关的方法，并不会重写AnyRef的equals方法。
+
+当定义equals是，记得同时也定义hashCode。在计算哈希码时，只应使用那些用来做相等性判断的字段。拿Item这个示例来说，可以将两个字段的哈希码结合起来：
+
+```
+final override def hashCode = 13 * description.hashCode + 17 * price.hashCode
+```
+
+提示：并不需要觉得重写equals哈hashCode是义务。对很多类而言，将不同的对象看做不相等是很正常的。举例来说，如果有两个不同的输入流或者单选按钮，则完全不需要考虑它们是否相等的问题。
+
+_**在应用程序中，通常对于数值型的比较使用==进行；对于引用类型而言，他会在做完必要的null检查之后调用equals方法。**_
+
+
+
+## 第9章 文件和正则表达式
+
+本章要点提要：
+
+* Source.fromFile\(...\).getLines.toArray输出文件的所有行。
+* Source.fromFile\(...\)。mkString以字符串形式输出文件内容。
+* 将字符串转换为数字，可以用toInt或toDouble方法。
+* 使用Java的PrintWriter来写入文本文件。
+* “正则”.r是一个Regex对象。
+* 如果正则表达式包含反斜杠\或者引号' 或“的话，用"""..."""。
+* 如果正则模块包含分组，可以用如下语法来提取它们的内容for\( regex\(变量1, ... , 变量n\) &lt;- 字符串\)。
+
+## 9.1 读取行
+
+要读取文件中的所有行，可以调用scala.io.Source对象的getLines方法：
+
+```
+import scala.io.Source
+
+val source = Source.fromFile("myfile.txt", "UTF-8)
+    //第一个参数可以是字符串或者是java.io.File，如果知道文件使用的是当前平台缺省的字符编码，则可以略去第二个字符编码参数
+val lineIterator = source.getLines
+```
+
+结果是一个迭代器，可以用它来逐条处理这些行：
+
+```
+for(l <- lineIterator) 处理l
+```
+
+或者也可以将对迭代器应用toArray或toBuffer方法，将这些行放在数组或数组缓冲当中：
+
+```
+val lines = source.getLines.toArray
+//有时候，只想把整个文件读取到一个字符串中，可以使用如下语句：
+val contents = source.mkString
+```
+
+**注意：在用完Source对象后，记得调用close去关闭。**
+
+
 
