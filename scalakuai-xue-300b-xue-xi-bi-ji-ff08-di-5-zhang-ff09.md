@@ -618,7 +618,7 @@ private\[impatient\] def description = "A person with name " + name
 
 引用语句可以使用更短的名称而不是原来较长的名称。如：import java.awt.Color 这样就可以在代码中写Color而不是java.awt.Color了，同时还可以通过Color.类名 的方式调用Color类中的方法实现想要的功能。
 
-在Scala中，可以通过\_引用某个包的全部成员：import java.awt.\_  这和Java中的通配符\*一样。（在Scala中，\*是合法的表示符。在上面的例子中完全可以定义com.horstmann.\*.people这样的包，但建议还是不要这样做。）
+在Scala中，可以通过\_引用某个包的全部成员：import java.awt.\_  这和Java中的通配符\*一样。（在Scala中，\*是合法的表示符。在上面的例子中完全可以定义com.horstmann.\*.people这样的包，但建议还是不要这样做。）
 
 在Scala中，也可以通过\_引入类或对象的所有成员。一旦引入了某个包，就可以用较短的名称访问其子包。例如：
 
@@ -655,9 +655,7 @@ imprt java.awt.{Color, Font}
 选取器语法（将用到的包中的某几个类通过花括号{}括起来）还允许重命名选到的成员：
 
 ```
-import java.util.{HashMap =
->
- JavaHashMap}
+import java.util.{HashMap => JavaHashMap}
 import scala.collection.mutable._
 ```
 
@@ -672,13 +670,9 @@ import scala.collection.mutable._
 
 现在，HashMap无二义地指向scala.collection.mutable.HashMap，因为java.util.HashMap被隐藏起来了。
 
-##  7.10 隐式引入
+## 7.10 隐式引入
 
-每个Scala程序都隐式地（默认）以如下代码开始（
-
-即默认自动导入以下包，这些包下面的子包不需要再带上这些前缀
-
-）：
+每个Scala程序都隐式地（默认）以如下代码开始（即默认自动导入以下包，这些包下面的子包不需要再带上这些前缀）：
 
 ```
 import java.lang._
