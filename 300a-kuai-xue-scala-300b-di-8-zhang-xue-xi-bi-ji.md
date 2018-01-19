@@ -273,8 +273,6 @@ final override def hashCode = 13 * description.hashCode + 17 * price.hashCode
 
 _**在应用程序中，通常对于数值型的比较使用==进行；对于引用类型而言，他会在做完必要的null检查之后调用equals方法。**_
 
-
-
 ## 第9章 文件和正则表达式
 
 本章要点提要：
@@ -314,6 +312,99 @@ val contents = source.mkString
 ```
 
 **注意：在用完Source对象后，记得调用close去关闭。**
+
+## 9.2 读取字符
+
+要从文件中读取单个字符，可以直接把Source对象当做迭代器，因为Source类扩展自Iterator\[Char\]:
+
+```
+import scala.io.Source
+
+val source = Source.fromFile("myfile.txt", "UTF-8)
+for(c <- source) 处理c
+```
+
+**要想查看某个字符而不处理掉它的话（类似C++中的istream::peek或Java中的PushbackInputStreamReader），调用Source对象的buffered方法。这样就可以用head方法查看下一个字符，但同时并不把它当做是已处理的字符**：
+
+```
+import scala.io.Source
+
+val source = Source.fromFile("myfile.txt", "UTF-8)
+val iter = source.buffered
+while(iter.hasNext){
+    if(iter.head 是符合预期的)
+        处理 iter.next
+    else
+        ...
+}
+source.close()
+    
+```
+
+如果文件不是很大，也可以把它读取成一个字符串进行处理：
+
+val contents = source.mkString
+
+## 9.2 读取词法单元和数字
+
+一个快而脏的读取源文件中所有以空格隔开的词法单元：
+
+```
+val tokens = source.mkString.split("\\S+")
+```
+
+将字符转换为数字，可以使用toInt或toDouble方法。如，将一个包含浮点数的文件读取到数组中：
+
+```
+val numbers = for(w <- tokens ) yield w.toDouble
+//或者val numbers = tokens.map(_.toDouble)
+```
+
+**提示：总是可以使用java.util.Scanner类处理同时包含文本和数字的文件。**
+
+从控制台读取数字：
+
+```
+print("How old are you?")
+//缺省情况下，系统会自动引入Console，因此并不需要对print和readInt使用限定词
+val age = readInt()        //或使用readDouble或readLong
+```
+
+**注意：这些方法假定下一行输入包含单个数字，且前后都没有空格。否则会报错NumberFormatException。**
+
+## 9.4 从URL或其他源读取
+
+Source对象有读取非文件源的方法：
+
+```
+val source1 = Source.fromURL("http://horstmann.com", "UTF-8")
+val source2 = Source.fromSting("Hello, World!")                    //从给定的字符串读取——对调试很有用
+val source3 = Source.stdin                                         //从标准输入读取
+```
+
+注意：当从URL读取时，需要事先知道字符集，可能是通过HTTP头获取。
+
+## 9.5 读取二进制文件
+
+Scala并没有提供读取二进制文件的方法，需要使用Java类库。如，将文件读取成字节数组：
+
+```
+val file = new File(filename)
+val in = new FileInputStream(file)
+val bytes = new Array[Byte](file.length.toInt)
+in.read(bytes)
+in.close
+```
+
+## 9.6 写入文本文件
+
+Scala没有內建的对写入文件的支持。要写入文本文件，可使用java.io.PrintWriter，例如：
+
+```
+val out = new PrintWriter("numbers.txt")
+for(i <- 1 to 100) out.println(i)
+out.close()
+```
 
 
 
