@@ -211,7 +211,7 @@ class Person(val name:String, val age:Int) {
 
 主构造器的参数被编译成字段，其值被初始化成构造时传入的参数。在本例中，name和age成为Person类的字段。如new Person\("Fred", 42\)这样的构造器调用将设置name和age字段。
 
-   2. 主构造器会执行类定义中的所有语句。
+1. 主构造器会执行类定义中的所有语句。
 
 ```
 class Person(val name:String, val age:Int){
@@ -276,9 +276,9 @@ class Network {
     class Member（val name: String) {
         val contacts = new ArrayBuffer[Member]
     }
-    
+
     private val members = new ArrayBuffer[Member]
-    
+
     def join(name: String) = {
         val m = new Member(name)
         members += m
@@ -287,5 +287,327 @@ class Network {
 }
 ```
 
+# 第6章 对象
+
+本章要点概览：
+
+用对象作为单例或存放工具方法。
+
+* 类可以拥有一个同名的伴生对象。
+* 对象可以扩展类或特质。
+* 对象的apply方法通常用来构造伴生类的新实例。
+* 如果不想显示定义main方法，可以用扩展App特质的对象。
+* 可以通过扩展Enumeration对象来实现枚举。
+
+## 6.1 单例对象
+
+Scala没有静态方法或静态字段，可以用object这个语法结构来达到同样的目的。对象定义了某个类的单个实例，包含想要的特质。例如：
+
+```
+object Accounts{
+    private var lastNumber = 0
+    def newUniqueNumber() = { lastNumber += 1;lastNumber }
+}
+
+```
+
+当在应用程序中需要一个新的唯一账号时，调用Accounts.newUniqueNumber\(\)即可。
+
+对象的构造器在该对象第一次被使用时调用。如果一个对象从未被使用，那么其构造器也不会被执行。
+
+对象本质上可以拥有类的所有特性——甚至可以扩展其他类或特质。只有一个例外：不能提供构造器参数。
+
+对于任何在Java或C++中会使用单例的地方，在Scala中都可以用对象来实现：
+
+* 作为存放工具函数或常量的地方。
+* 高效地共享单个不可变实例。
+* 需要用单个实例来协调某个服务时（参考单例模式）。
+
+说明：Scala提供的是工具，可以做出好的设计，也可以做出糟糕的设计，需要做出自己的判断。
+
+## 6.2 伴生对象
+
+在Java或C++中，通常会用到既有实例方法又有静态方法的类。在Scala中，可以通过类和与类同名的“
+
+伴生”对象
+
+来达到同样的目的。
+
+```
+class Account{
+    val id = Account.newUniqueNumber()
+    private var balance = 0.0
+    def deposit(amount: Double) { balance += amount }
+    ......
+}
+
+object Account{      //伴生对象
+    private var lastNumber = 0
+    private def newUniqueNumber() = { lastNumber += 1; lastNumber }
+}
+```
+
+类和它的伴生对象可以相互访问私有特性。它们必须存在于同一个源文件中。
+
+说明：类的伴生对象可以被访问，但并不在作用域当中。如上面的例子，Account类必须通过Account.newUniqueNumber\(\)而不是newUniqueNumber\(\)来调用伴生对象的方法。
+
+
+
+提示：在REPL中，要同时定义类和对象，必须使用黏贴模式。键入：
+
+:paste
+
+然后键入或黏贴类和对象的定义，最后一Ctrl + D退出黏贴模式。
+
+## 6.3 扩展类或特质的对象
+
+一个object可以扩展类以及一个或多个特质，其结果是一个扩展了指定类以及特质的类的对象，同时拥有在对象定义中给出的所有特性。一个有用的场景是给出可被共享的缺省对象。
+
+如，考虑在程序中引入一个可撤销动作的类：
+
+```
+abstract class UndoableAction(val description:String){
+    def undo(): Unit
+    def redo():Unit
+}
+```
+
+默认情况下可以是“什么都不做”。对于这个行为只需要一个实例即可。
+
+```
+object DoNothingAction extends UndoableAction("Do nothing"){
+    override def undo() {}
+    override def redo(){}
+}
+```
+
+DoNothingAction对象可以被所有需要这个缺省行为的地方公用。
+
+val actions = Map\("open" -&gt; DoNothingAction, "save" -&gt; DoNothingAction, ...\)
+
+//打开和保存功能尚未实现
+
+## 6.4 apply方法
+
+我们通常会定义和使用对象的apply方法。当遇到如下形式的表达式时，apply方法就会被调用。
+
+        Object\(参数1, 参数2, ... , 参数N\)
+
+通常，这样的apply方法返回的是伴生类的对象。例如，Array对象定义了apply方法，可以用下面的表达式创建数组：
+
+        Array\("Mary", "had", "a", "little", "lamb"\)
+
+注意：不要把Array\(10\)和new Array\(10\)混淆。前一个表达式调用的是apply\(10\)，输出一个单元素（整数10）的Array\[Int\]；而第二个表达式调用的是构造器this\(10\)，结果是Array\[Nothing\]，包含10个null元素。
+
+## 6.5 应用程序对象
+
+每个Scala程序都必须从一个对象的main方法开始，这个方法的类型为Array\[String\] =&gt; Unit:
+
+```
+object Hello{
+    def main(args: Array[String]){
+        println("Hello, World!")
+    }
+}
+```
+
+除了每次都提供自己的main方法外，也可以扩展App特质，然后将程序代码放入构造器方法体内：
+
+
+
+```
+object Hello extends App{
+    println("Hello, World!")
+}
+```
+
+* 如果需要命令行参数，则可以通过args属性得到：
+
+```
+object Hello extends App{
+    if(args.length 
+>
+ 0)
+        println("Hello, " + args(0)
+    else 
+        prinln("Hello, World!")
+}
+```
+
+* 如果在调用该应用程序时设置了scala.time选项的话，程序退出时会显示逝去的时间。
+
+```
+$scalac Hello.scala
+$scala -Dscala.time Hello Fred
+Hello, Fred
+[total 4ms]
+```
+
+App特质扩展自另一个特质DelayedInit，编译器对该特质有特殊处理。所有带有该特质的类，其初始化方法都会被挪到delayedinit方法中。App特制的main方法捕获到命令行参数，调用delayedInit方法，并且还可以根据要求打印出逝去的时间。
+
+## 6.6 枚举
+
+和Java或C++不同，Scala并没有枚举类型。不过，标准类库提供了一个Enumeration助手类，可以用于产出枚举。
+
+例如，定义一个扩展Enumeration类的对象并以Value方法调用初始化枚举中的所有可选值。
+
+```
+object TrafficLightColor extends Enumeration{
+    val Red, Yellow, Green = Value
+}
+```
+
+
+
+这里定义了三个字段：Red、Yellow、Green，然后用Value调用将它们初始化。得到val Red = Value；val Yellow  = Value; val Green = Value。每次调用Value方法都返回内部类的新实例，该内部类也叫做Value。
+
+记住枚举的类型是TrafficLightColor.Value而不是TrafficLightColor——后者是握有这些值的对象。
+
+```
+object TrafficLightColor extends Enumeration{
+    type TrafficLightColor = value      //增加一个类型别名
+    val Red, Yellow, Green = Value
+}
+
+//现在枚举的类型变成了TrafficLightColor.TrafficLightColor，但仅当使用import语句时这样做才有意义。
+import TrafficLightColor._
+def doWhat(color: TrafficLightColor) = {
+    if(color == Red) "stop"
+    else if(color == Yellow) "hurry up"
+    else "go"
+}
+
+```
+
+枚举值得ID可通过id方法返回，名称通过toString方法返回。对TrafficLightColor.values的调用输出所有枚举值的集：
+
+for\(c -&gt; TrafficLightColor.values\) println\(c.id + ":" + c\)
+
+最后，可以通过枚举的ID或名称来进行查找定位，以下两段代码都输出TrafficLightColor.Red对象：
+
+```
+TrafficLightColor(0)        //调用Enumeration.apply
+TrafficLightColor.withName("Red")
+```
+
+# 第7章 包和引入
+
+本章要点概览：
+
+* 包也可以像内部类那样嵌套。
+* 包路径不是绝对路径。
+* 包声明链x.y.z并不自动将中间包x和x.y变成可见。
+* 位于文件顶部不带花括号的包声明在整个文件范围内有效。
+* 包对象可以持有函数和变量。
+* 引入语句可以引入包、类和对象。
+* 引入语句可以出现在任何位置。
+* 引入语句可以重命名和隐藏特定成员。
+* java.lang、scala和Predef总是被引入。
+
+## 7.1 包
+
+Scala的包和Java中的包或者C++中的命名空间的目的是相同的：管理大型程序中的名称。
+
+例如：Map这个名称可以同时出现在scala.collection.immutable和scala.collection.mutable包中而不会发生冲突。要访问它们中的任何一个，可以使用完全限定的名称scala.collection.imutable.Map或scala.collection.mutable.Map，也可以使用引入语句提供一个更短小的别名。
+
+要增加条目到包中，可以将其包含在包语句中，比如：
+
+```
+package com{
+    package horstman{
+        package impatient{
+            class Employee
+            ...
+        }
+    }
+}
+```
+
+这样类名Employee就可以在任意位置以com.horstmann.impatient.Employee访问到了。
+
+与对象或类的定义不同，同一个包可以定义在多个文件当中。
+
+说明：源文件的目录和包之间并没有强制的关联关系。
+
+## 7.2 作用域规则
+
+在Scala中，包的作用域比起Java来更加前后一致。Scala的包和其他作用域一样地支持嵌套。
+
+可以访问上层作用域中的名称。
+
+Scala中有一个特性，那就是scala包总是被引入。因此包中没有其他collection包，引入collection包中的mutable.ArrayBuffer时可以使用相对路径collection.mutable.ArrayBuffer而不出错，但是当其他包中有collection这个包，如com.horstmann.collection，再使用相对路径collection.mutable.ArrayBuffer就可能因编译器找不到对应的包而引发错误。
+
+在Java中，这个问题不会发生，因为包名总是绝对的，从包层级的最顶端开始。但是在Scala中，包名是相对的，就像内部类的名称一样。内部类通常不会遇到这个问题，因为所有代码都在同一个文件当中，由负责该文件的人直接控制。但是包不一样了，任何人都可以在任何时候向任何包添加内容。
+
+解决方法之一是使用绝对包名，以\_root\_开始
+
+，例如：
+
+val subordinates = new \_root\_.scala.collection.mutable.ArrayBuffer\[Employee\]
+
+另一种做法是使用“串联式”包语句。
+
+说明：大多数程序员都是用完整的包名，知识不加\_root\_前缀。只要避免用scala、java、com、org等名称来命名嵌套的包，这样做就是安全的。
+
+##  7.3 串联式包语句
+
+包语句可以包含一个“串”，或者说路径区段，例如：scala.collection.mutable包中的ArrayBuffer，这样的包语句限定了可见的成员。
+
+## 7.4 文件顶部标记法
+
+除了嵌套标记法外，也可以在文件顶部使用package语句，不带或括号。例如：
+
+```
+package com.horstmann.impatient
+package people
+
+class Person
+...
+
+//上面的代码等价于
+package com.horstmann.impatient{
+    package people{
+        class Person
+        ...
+        //直到文件末尾
+    }
+}
+```
+
+注意在上面的示例中，文件的所有内容都属于com.horstmann.impatient.people，但com.horstmann.impatient包中的内容是可见的，可以被直接引用。
+
+## 7.5 包对象
+
+包可以包含类、对象和特质，但不能包含函数或变量的定义，这是Java虚拟机的局限。把工具函数或常量添加到包而不是某个Utils对象，这是更加合理的做法。包对象的出现正是为了解决这个局限。
+
+每个包都可以有一个包对象。需要再父包中定义它，且名称与子包一样。例如：
+
+```
+package com.horstmann.impatient
+
+
+package object
+ people{
+    val defaultName = "John Q, Public"
+}
+
+package people {
+    class Person{
+        var name = defaultName  //此包对象拿到的常量
+    }
+}
+```
+
+注意defaultName不需要加限定词（父包的路径），因为它位于同一个包内。在其他地方，这个常量可以使用com.horstmann.impatient.people.defaultName访问到。
+
+在幕后，包对象被编译成带有静态方法和字段的JVM类，名为package.class，位于相应的包下。对应到本例中，就是com.horstmann.impatient.people.package，其中有一个静态字段defaultName。（在JVM中，可以使用package作为类名。）
+
+  
+
+
+  
+
+
+  
 
 
