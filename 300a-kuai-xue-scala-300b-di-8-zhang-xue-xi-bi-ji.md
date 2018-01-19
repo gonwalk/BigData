@@ -95,9 +95,9 @@ Scala还提供了一个protected\[this\]的变体，将访问权限定在当前�
 class Employee(name:String, age:Int, val salary: Double) extends Person(name, age)
 ```
 
-这段代码定义了一个子类：class Employee\(name: String, age: Int, val salary: Double\) extends Person\(name, age\)
+这段代码定义了一个子类：class Employee\(name: String, age: Int, val salary: Double\) extends Person\(name, age\)
 
-和一个调用超类构造器的主构造器：class Employee \(name: String, age: Int, val salary: Double\) extends Person\(name, age）
+和一个调用超类构造器的主构造器：class Employee \(name: String, age: Int, val salary: Double\) extends Person\(name, age）
 
 将类和构造器交织在一起可以带来更精简的代码。把主构造器的参数当做是类的参数可能更容易理解。本例中的Employee类有三个参数：name、age和salary，其中的两个（name和age）被“传递”到了超类（即父类）。与上述定义等效的Java代码如下：
 
@@ -223,16 +223,11 @@ val fred = new Person{
 
 ![](/assets/构造顺序.png)
 
-![](/assets/提前定义.png)  
-
+![](/assets/提前定义.png)
 
 说明：构造顺序问题的根本原因来自Java语言的一个设计决定——即允许在超类的构造方法中调用子类的方法。在C++中，对象的虚函数表的指针在超类构造方法执行的时候被设置成指向超类的虚函数表。之后，才指向子类的虚函数表。因此，在C++中，没有办法通过重写修改构造方法的行为。Java设计者们觉得这个细微差别是多余的，Java虚拟机因此在构造过程中并不调整虚拟函数表。
 
 ## 8.11 Scala继承层级
 
-  
-
-
-  
-
+![](/assets/Scala继承层级.png)
 
