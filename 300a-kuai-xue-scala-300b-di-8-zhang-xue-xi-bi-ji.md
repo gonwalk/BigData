@@ -338,7 +338,6 @@ while(iter.hasNext){
         ...
 }
 source.close()
-    
 ```
 
 如果文件不是很大，也可以把它读取成一个字符串进行处理：
@@ -404,6 +403,91 @@ Scala没有內建的对写入文件的支持。要写入文本文件，可使用
 val out = new PrintWriter("numbers.txt")
 for(i <- 1 to 100) out.println(i)
 out.close()
+```
+
+注意，当传递数字给printf时，编译器要求将它转换成AnyRef，如下形式：
+
+```
+out.printf("%6d %10.2f", quantity.asInstanceOf[AnyRef], price.asInstanceOf[AnyRef])
+```
+
+**为了避免这个麻烦，可以用String类的format方法：**
+
+```
+out.print("%6d %10.2f".format(quantity, price))
+```
+
+说明：Console类的printf没有这个问题，可以使用printf\("%6d %10.2f", quantity, price\)来输出消息到控制台。
+
+## 9.7 访问目录
+
+目前，Scala并没有“正式的”用来访问某个目录总的所有文件的方法，或者递归地遍历所有目录的类。但可以使用其他的替代方案，如编写遍历某目录下所有子目录的函数：
+
+```
+import java.io.File
+
+def subdirs(dir: File): Iterator[File] = {
+    val children = dir.listFiles.filter(_.isDirectory)
+    children.toIterator ++ children.toIterator.flatMap(subdirs _)
+}
+
+//利用这个函数，可以访问所有的子目录
+for(d <- subdirs(dir)) 处理d
+```
+
+在Java7中，也可以使用java.nio.file.Files类中的walkFileTree方法，该类用到了FileVisitor接口。在Scala中，通常喜欢用函数对象指定工作内容，而不是接口。以下隐式转换让函数可以与接口相匹配：
+
+```
+import java.nio.file._
+implicit def makeFileVisitor(f: (Path) => Unit) = new SimpleFileVisitor[Path]{
+    override def visitFile(p: Path, attrs: attribute.BasicFileAttributes) = {
+        f(p)
+        FileVisitResult.CONTINUE
+    }
+}
+
+//通过如下调用来打印所有的子目录
+Files.walkFileTree(dir.toPath, (f: Path) => println(f))
+```
+
+## 9.8 序列化
+
+_**Java中，用序列化将对象传输到其他虚拟机，或临时存储。**_（对于长期存储而言，序列化可能会比较笨拙——随着类的演进更新，处理不同版本之间的对象是很麻烦的一件事。）在Java和Scala中声明一个可被序列化的类：
+
+```
+//Java代码
+public class Person implements java.io.Serializable{
+    private static final long serialVersionUID = 42L;
+    ...
+}
+
+//Scala代码
+@SerialVersionUID(42L) class Person extends Serializable
+```
+
+Serializable特质定义在scala包，因此不需要显示引入。
+
+说明：如果能接受缺省的ID，也可略去@SerialVersionUID注释。
+
+可以按照常规的方式对对象进行序列化和反序列化：
+
+```
+val fred = new Person( ... )
+import java.io_
+val out = new ObjectOutputStream(new FileOutputStream("/tmp/test.obj"))
+out.writeObject(fred)
+out.close()
+val in = new ObjectInputStream(new FileInputStream("/tmp/test.obj"))
+val savedFred = in.readObject().asInstanceOf[Person]
+```
+
+Scala集合类都是可序列化的，因此可以把它们用做可序列化类的成员：
+
+```
+class Person extends Serializable {
+    private val friends = new ArrayBuffer[Person]   //ArrayBuffer是可序列化的
+    ...
+}
 ```
 
 
