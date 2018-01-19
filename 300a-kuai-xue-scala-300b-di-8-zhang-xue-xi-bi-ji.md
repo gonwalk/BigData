@@ -229,3 +229,13 @@ val fred = new Person{
 
 ![](/assets/Scala继承层级.png)
 
+说明：和Java一样，建议远离wait、notify和synchronized——除非你有充分的理由使用这些关键字而不是更高层次的并发结构。
+
+所有的Scala类都实现ScalaObject这个接口，这个接口没有定义任何方法。
+
+在继承层级的另一端是Nothing和Null类型。
+
+Null类型的唯一实例是null值。可以将null赋值给任何引用，但不能赋值给值类型的变量。如，不能将Int设为null。这比Java更好，在Java中可以将Integer包装类引用设为null。Nothing类型没有实例。它对于泛型结构时常有用。举例，空列表Nil的类型是List\[Nothing\]，它是List\[T\]的子类型，T可以是任何类。
+
+注意：Nothing类型和Java或C++中的void完全是两个概念。在Scala中，void由Unit类型表示，该类型只有一个值，那就是\(\)。注意Unit并不是任何其他类型的超类型。但是，编译器依然允许任何值被替换成\(\)。
+
