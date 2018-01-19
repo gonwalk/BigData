@@ -308,7 +308,6 @@ object Accounts{
     private var lastNumber = 0
     def newUniqueNumber() = { lastNumber += 1;lastNumber }
 }
-
 ```
 
 当在应用程序中需要一个新的唯一账号时，调用Accounts.newUniqueNumber\(\)即可。
@@ -351,8 +350,6 @@ object Account{      //伴生对象
 
 说明：类的伴生对象可以被访问，但并不在作用域当中。如上面的例子，Account类必须通过Account.newUniqueNumber\(\)而不是newUniqueNumber\(\)来调用伴生对象的方法。
 
-
-
 提示：在REPL中，要同时定义类和对象，必须使用黏贴模式。键入：
 
 :paste
@@ -391,11 +388,15 @@ val actions = Map\("open" -&gt; DoNothingAction, "save" -&gt; DoNothingAction, .
 
 我们通常会定义和使用对象的apply方法。当遇到如下形式的表达式时，apply方法就会被调用。
 
-        Object\(参数1, 参数2, ... , 参数N\)
+```
+    Object\(参数1, 参数2, ... , 参数N\)
+```
 
 通常，这样的apply方法返回的是伴生类的对象。例如，Array对象定义了apply方法，可以用下面的表达式创建数组：
 
-        Array\("Mary", "had", "a", "little", "lamb"\)
+```
+    Array\("Mary", "had", "a", "little", "lamb"\)
+```
 
 注意：不要把Array\(10\)和new Array\(10\)混淆。前一个表达式调用的是apply\(10\)，输出一个单元素（整数10）的Array\[Int\]；而第二个表达式调用的是构造器this\(10\)，结果是Array\[Nothing\]，包含10个null元素。
 
@@ -412,8 +413,6 @@ object Hello{
 ```
 
 除了每次都提供自己的main方法外，也可以扩展App特质，然后将程序代码放入构造器方法体内：
-
-
 
 ```
 object Hello extends App{
@@ -457,9 +456,7 @@ object TrafficLightColor extends Enumeration{
 }
 ```
 
-
-
-这里定义了三个字段：Red、Yellow、Green，然后用Value调用将它们初始化。得到val Red = Value；val Yellow  = Value; val Green = Value。每次调用Value方法都返回内部类的新实例，该内部类也叫做Value。
+这里定义了三个字段：Red、Yellow、Green，然后用Value调用将它们初始化。得到val Red = Value；val Yellow  = Value; val Green = Value。每次调用Value方法都返回内部类的新实例，该内部类也叫做Value。
 
 记住枚举的类型是TrafficLightColor.Value而不是TrafficLightColor——后者是握有这些值的对象。
 
@@ -476,7 +473,6 @@ def doWhat(color: TrafficLightColor) = {
     else if(color == Yellow) "hurry up"
     else "go"
 }
-
 ```
 
 枚举值得ID可通过id方法返回，名称通过toString方法返回。对TrafficLightColor.values的调用输出所有枚举值的集：
@@ -549,7 +545,7 @@ val subordinates = new \_root\_.scala.collection.mutable.ArrayBuffer\[Employee\]
 
 说明：大多数程序员都是用完整的包名，知识不加\_root\_前缀。只要避免用scala、java、com、org等名称来命名嵌套的包，这样做就是安全的。
 
-##  7.3 串联式包语句
+## 7.3 串联式包语句
 
 包语句可以包含一个“串”，或者说路径区段，例如：scala.collection.mutable包中的ArrayBuffer，这样的包语句限定了可见的成员。
 
@@ -602,12 +598,95 @@ package people {
 
 在幕后，包对象被编译成带有静态方法和字段的JVM类，名为package.class，位于相应的包下。对应到本例中，就是com.horstmann.impatient.people.package，其中有一个静态字段defaultName。（在JVM中，可以使用package作为类名。）
 
-  
+## 7.6 包可见性
 
+在Java中，没有被声明为public、private或protected的类成员在包含该类的包中可见。在Scala中，可以通过修饰符达到同样的效果。以下方法在它自己的包中可见：
 
-  
+```
+package com.horstmann.impatient.people
+class Person{
+    private[people] def description = "A person with name " + name 
+    ...
+}
+```
 
+可以将可见度延展到上层包：
 
-  
+private\[impatient\] def description = "A person with name " + name
 
+## 7.7 引用
+
+引用语句可以使用更短的名称而不是原来较长的名称。如：import java.awt.Color 这样就可以在代码中写Color而不是java.awt.Color了，同时还可以通过Color.类名 的方式调用Color类中的方法实现想要的功能。
+
+在Scala中，可以通过\_引用某个包的全部成员：import java.awt.\_  这和Java中的通配符\*一样。（在Scala中，\*是合法的表示符。在上面的例子中完全可以定义com.horstmann.\*.people这样的包，但建议还是不要这样做。）
+
+在Scala中，也可以通过\_引入类或对象的所有成员。一旦引入了某个包，就可以用较短的名称访问其子包。例如：
+
+```
+import java.awt._
+
+def handler(evt: event.ActionEvent){//java.awt.event.ActionEvent
+    ...
+}
+```
+
+其中，event包时java.awt包的成员，因此引用语句把它带进了作用域。
+
+## 7.8 任何地方都可以声明引入
+
+在Scala中，import语句可以出现在任何地方，并不仅限于文件顶部。import语句的效果一直延伸到包含该语句的块末尾。例如：
+
+```
+class Manager {
+    import scala.collection.mutable._
+    val subordinates = new ArrayBuffer[Employee]
+    ...
+}
+```
+
+通过将引入放置在需要这些引入的地方，可以大幅减少可能的名称冲突。
+
+## 7.9 重命名和隐藏方法
+
+如果想要引入包中的几个成员，可以像下面这样使用选取器（selector）：
+
+imprt java.awt.{Color, Font}
+
+选取器语法（将用到的包中的某几个类通过花括号{}括起来）还允许重命名选到的成员：
+
+```
+import java.util.{HashMap =
+>
+ JavaHashMap}
+import scala.collection.mutable._
+```
+
+这样，JavaHashMap就是java.util.HashMap，而HashMap则对应scala.collection.mutable.HashMap。
+
+选取器HashMap =&gt; \_将隐藏某个成员而不是重命名它。这仅在需要引入其他成员时有用：
+
+```
+import java.util.{HashMap => _, _}
+import scala.collection.mutable._
+```
+
+现在，HashMap无二义地指向scala.collection.mutable.HashMap，因为java.util.HashMap被隐藏起来了。
+
+##  7.10 隐式引入
+
+每个Scala程序都隐式地（默认）以如下代码开始（
+
+即默认自动导入以下包，这些包下面的子包不需要再带上这些前缀
+
+）：
+
+```
+import java.lang._
+import scala._
+import Predef._
+```
+
+和Java程序一样，java.lang总是被引入。接下来，scala包也被引入，不过方式有些特殊。不像所有其他引入，这个引入被允许可以覆盖之前的而引入。例如，scala.StringBuilder会覆盖java.lang.StringBuffer而不是与之冲突。最后，Predef对象被引入。它包含了相当多有用的函数。（这些同样可以被放置在scala包对象中，不过Predef在Scala还没有加入包对象之前就已经存在了。）
+
+由于scala包默认被引入，对于那些以scala开头的包，完全不需要写全这个前缀。例如：collection.mutable.HashMap和以下这个写法scala.collection.mutable.HashMap效果一样。
 
