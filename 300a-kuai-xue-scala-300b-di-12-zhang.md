@@ -92,7 +92,7 @@ valueAtOneQuarter(f: (Double) => Double) = f(0.25)
 def mulBy(factor: Double) = (x: Double) => factor * x
 //相当于mulBy(factor: Double) = ((x: Double) => factor * x)
 val quintuple = mulBy(5)   //相当于quintuple = 5*x
-quintuple(20)              //等于 5 * 20 
+quintuple(20)              //等于 5 * 20
 ```
 
 mulBy函数有一个类型为Double的参数，返回一个类型为\(Double\) =&gt; Double的函数。因此，它的类型为： \(Double\) =&gt; \(\(Double\) =&gt; Double\)
@@ -133,9 +133,17 @@ Scala集合库中的一些常用的接受函数参数的方法：
 
 ........
 
-可以使用\(1 to 9\).map\("\*" \* \_ _\).foreach\( println  \_ \)_
+可以使用\(1 to 9\).map\("\*" \* \_ _\).foreach\( println  \__ \)
 
 **foreach，它和map很像，只不过它的函数并不返回任何值，foreach只是简单地将函数应用到每个元素。**
 
+**filter方法输出所有匹配某个特定条件的元素。**  如得到一个序列中的所有偶数：
 
+\(1 to 9\).filter\(\_ % 2 == 0\)         //2, 4, 6, 8
+
+reduceLeft方法接受一个二元函数——即一个带有两个参数的函数——并将它应用到序列中的所有元素，从左到右。例如：
+
+\(1 to 9 \).reduceLeft\(_ \_ \* \_ \)        //等同于1 \* 2 \* 3 \* 4 \* 5\* 6 \* 7 \*8 \* 9_
+
+注意：乘法函数的紧凑写法_ \_ \* \_，每个下划线代表一个参数。_
 
