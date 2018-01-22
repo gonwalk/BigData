@@ -492,18 +492,440 @@ class Person extends Serializable {
 
 ## 9.9 进程控制
 
-第5章 类
-
-  
 
 
-本章的要点包括：
 
-* 类中的字段自动带有getter方法和setter方法。
-* 可以用定制的getter/setter方法替换掉字段的定义，而不必修改使用类的客户端——这就是所谓的“统一访问原则”。
-* 用@BeanProperty注解来生成JavaBeans的getXxx/setXxx方法。
-* 每个类都有一个主要的构造器，这个构造器和类定义“交织”在一起。它的参数直接成为类的字段。主构造器执行类体中所有的语句。
-* 辅助构造器是可选的，他们叫做this。
+
+
+
+
+
+# 第10章 特质
+
+一个类扩展自一个或多个特质，以便使用这些特质提供的服务。特质可能会要求使用它的类支持某个特定的特性。不过，和Java接口不同，Scala特质可以给出这些特性的缺省实现。因此，与接口相比，特质要有用得多。  
+本章要点概述
+
+* 类可以实现任意数量的特质。
+* 特质可以要求实现它们的类具备特定的字段、方法或超类。
+* **和Java接口不同，Scala特质可以提供方法和字段的实现。**
+* 将多个特质叠加在一起时，顺序很重要——其方法先被执行的特质排在更后面。
+
+## 10.1 为什么没有多重继承 {#101-为什么没有多重继承}
+
+Scala和Java一样不允许从多个超类继承。某些编程语言，特别是C++允许多重继承，但代价也是很高的。如果要将毫不相干的多个类组装在一起，但是这些类具备某些共通的方法或子弹，那么麻烦就来了。  
+![](http://img.blog.csdn.net/20180120162709568?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")  
+![](http://img.blog.csdn.net/20180120162924730?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")
+
+## 10.2 当做接口使用的特质 {#102-当做接口使用的特质}
+
+Scala特质完全可以像Java接口那样公共。例如：
+
+```
+trait Logger
+ {
+    def log(msg: String)  //这是一个抽象方法
+}
+
+```
+
+**注意：在Scala特质中，不需要（显式地）将方法声明为abstract——特质中未被实现的方法默认就是抽象的。在子类中，可以给出具体的实现。在重写特质的抽象方法时不需要给出override关键字。**
+
+```
+class ConsoleLogger extends Logger {	//用extends而不是implements
+    def log(msg: String) { //不需要写override
+        println(msg)
+    }
+}
+```
+
+说明：Scala并没有一个特殊的关键字用来标记对特质的实现。**比起Java接口，特质跟类更为相像。这样就对上面子类实现特质时，使用extends而不是implements更容易理解了。**  
+如果需要多个特质，可以使用with关键字来添加额外的特质：class ConsoleLogger extends Logger**with Cloneable with Serializable**  
+正如上面使用到的Java类库中的Cloneable和Serializable接口一样，**所有Java接口都可以作为Scala特质使用**。**和Java一样，Scala类只能有一个超类，但可以用任意数量的特质。**
+
+## 10.3 带有具体实现的特质 {#103-带有具体实现的特质}
+
+**在Scala中，特质中的方法可以是抽象的，也可以带有具体的实现，这与Java接口中的方法只能是抽象的（且不能含有字段的实现:接口里面不能有私有的方法或变量，定义的变量一般都是静态常量，起数据共享的作用）是不同的。**
+
+```
+trait ConsoleLogger {
+    def log(msg: String){
+        println(msg)
+    }
+}
+
+class SavingsAccount extends Account with ConsoleLogger{
+	def withdraw(amount: Double) {
+		if(amount > balance) log("Insufficient funds")
+		else balance -= amount
+	}
+	...
+}
+```
+
+注意：上面SavingAccount从ConsoleLogger特质得到了一个具体的log方法实现，这对于Java接口的话是不可能做到的，这是Scala和Java的一个区别。**让特质拥有具体行为存在一个弊端：当特质改变时，所有混入了该特质的类（即实现该特质的子类）都必须重新编译。**
+
+## 10.4 带有特质的对象 {#104-带有特质的对象}
+
+在构造单个对象时，可以为它添加特质。下面的示例中，用标准Scala库中的Logged特质，其和上面的Logger很像，但它自带的是一个什么都不做的实现：
+
+```
+trait Logged {
+    def log(msg:String) { }
+}
+//在类定义中使用上面的特质
+class SavingsAccount extends Account with Logged {
+	def withdraw(amount: Double) {
+		if(amount > balance) log("Insufficient funds")
+		else ...
+	}
+}
+```
+
+现在，什么都不会被记录到日志，看上去似乎毫无意义。但是可以在构造具体对象的时候“混入”一个更好的日志记录器的实现。标准的ConsoleLogger扩展自Logged特质：
+
+```
+trait ConsoleLogger extends Logged{
+	override def log(msg: String) { println(msg) }
+}
+```
+
+可以在构造对象的时候加入这个特质：  
+val acct = new SavingsAccount with ConsoleLogger  
+当在acct对象上调用log方法时，ConsoleLogger特质的log方法就会被执行。另一个对象可以加入不同的特质：  
+val acct2 = new SavingsAccount with FileLogger
+
+## 10.5 叠加在一起的特质 {#105-叠加在一起的特质}
+
+可以为类或者对象添加多个互相调用的特质，从最后一个开始。这对于需要分阶段加工处理某个值的场景很有用。如，给所有日志消息添加时间戳：
+
+```
+trait TimestampLogger extends Logged{
+	override def log(msg: String) {
+		super.log(new java.util.Date() + " " + msg)
+	}
+}
+```
+
+截断过于冗长的日志消息：
+
+```
+trait ShortLogger extends Logged{
+	val maxLength = 15  //关于特质中的字段，参见10.8节
+	override def log(msg: String) {
+		super.log(
+			if(msg.length <= maxLength) msg 
+			else msg.substring(0, maxLength - 3) + "...") //大于最大长度时，去前面的字段，后面超过长度的内容使用三个点号组成省略号代替
+	}
+}
+```
+
+上面的log方法每一个都将修改过的消息传递给super.log。  
+对特质而言，super.log并不像类那样拥有相同的含义。（如果真有相同的含义，那么这些特质就毫无用处——他们扩展自Logged，其log方法什么也不做。）实际上，super.log调用的是特质层级中的下一个特质。具体是哪一个，要根据特质添加的顺序来决定。一般来说，特质从最后一个开始被处理。  
+![](http://img.blog.csdn.net/20180120205803985?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")
+
+## 10.6 在特质中重写抽象方法 {#106-在特质中重写抽象方法}
+
+在自定义的Logger特质中，并没有提供log方法的实现。现在用时间戳特质来扩展它，这样TimestampLogger类就不能编译了。
+
+```
+trait Logger{
+	def log(msg: String)   //这个是抽象方法
+}
+trait TimestampLogger extends Logger{
+	override def log(msg:String){   //重写抽象方法
+		super.log(new java.util.Date() + " " + msg)    //super.log定义了吗？
+	}
+}
+
+```
+
+在上面程序中，编译器将super.log调用标记为错误。根据正常的继承规则，这个调用永远都是错的——Logger.log方法没有实现。但实际上，我们没有办法指导哪个log方法最终被调用——这取决于特质被混入的顺序。  
+Scala认为TimestampLogger依旧是抽象的——它需要混入一个具体的log方法。因此必须给方法打上abstract关键字以及override关键字，就像这样：
+
+```
+abstract override def log(msg: String) {
+	super.log(new java.util.Date() + " " + msg)
+}
+```
+
+## 10.7 当做富接口使用的特质 {#107-当做富接口使用的特质}
+
+特质可以包含大量工具方法，而这些工具方法可以依赖一些抽象方法来实现。例如Scala中的Iterator特质就是利用抽象的next和hasNext定义了几十个方法。如下面给日志API中的每个日志指定一个级别以区分信息类的消息和警告、错误等。
+
+```
+trait Logger{
+	def log(msg: String)
+	def info(msg: String) { log("INFO: " + msg) }
+	def warn(msg: String) { log("WARN: " + msg) }
+	def severe(msg: String) { log("SEVERE: " + msg) }
+
+//这样，使用Logger特质的类就可以任意调用这些日志消息方法了
+class SavingsAccount extends Account with Logger{
+	def withdraw(amount: Double) {
+		if(amount > balance) severe("Insufficient funds)
+		else ...
+	}
+	...
+	override def log(msg: String) { println(msg)
+	}
+}
+```
+
+在Scala中像这样在特质中使用具体和抽象方法十分普遍。在Java中，就需要声明一个接口和一个额外的扩展该接口的类（比如Collection/AbstractCollection或MouseListener/MouseAdapter）。
+
+## 10.8 特质中的具体字段 {#108-特质中的具体字段}
+
+特质中的字段可以是具体的，也可以是抽象的。如果给出了初始值，那么该字段就是具体的。而Java中的接口，字段（变量）都是静态常量，用于传递共享字段。
+
+```
+trait ShortLogger extends Logged{
+	val maxLength = 15 //具体的字段
+	...
+}
+
+```
+
+混入该特质的类自动获得一个maxLength字段。通常，对于特质中的每一个具体字段，使用该特质的（子）类都会获得一个字段与之对应。这些字段不是被继承的，它们只是简单地被加到了子类当中。这看上去像是一个很细微的差别，但这个区别很重要。
+
+```
+class SavingsAccount extends Account with ConsoleLogger with ShortLogger{
+	var interest = 0.0
+	def withdraw(amount: Double) {
+		if(amount > balance) log("Insufficient funds")
+		else ...
+	}
+}
+```
+
+注意，子类有一个字段interest，这个是子类中一个普通的字段。假定Account也有一个字段：
+
+```
+class Account {
+	var balance = 0.0
+}
+
+```
+
+在JVM中，一个类只能扩展一个超类，因此来自特质的字段不能以相同的方式继承。由于这个限制，maxLength被直接加到了SavingsAccont类中，跟interest字段排在一起。如下图所示：  
+\| balance \| //超类对象  
+\| interest \| //子类字段  
+\| maxLength \| // 子类字段
+
+可以把具体的特质字段当做是针对使用该特质的（子）类的“（自动）装配指令”，任何通过这种方式被混入的字段都自动成为该类自己的字段。
+
+## 10.9 特质中的抽象字段 {#109-特质中的抽象字段}
+
+**特质中未被初始化的字段在具体的子类中必须被重写。**如下maxLength字段时抽象的：
+
+```
+trait ShortLogger extends Logged {
+	val maxLength: Int   //抽象字段
+	override def log(msg: String){
+		super.log(
+		  if(msg.length <= maxLength) msg 
+		  else msg.substring(0, maxLength - 3) + "...")
+		  //在这个实现中用到了maxLength字段
+    }
+    ...
+}
+
+//当在一个具体的类中使用上面的特质时，必须提供maxLength字段
+class SavingsAccount extends with ConsoleLogger with ShortLogger {
+	val maxLength = 20  //不需要override,这样所有的日志消息都将在第20个字符处被截断
+	...
+}
+```
+
+这种提供特质参数值的方式在临时要构造某种对象时尤为重要。
+
+## 10.10 特质构造顺序 {#1010-特质构造顺序}
+
+和类一样，特质也可以有构造器，由字段的初始化和其他特质体中的语句构成。
+
+```
+trait FileLogger extends Logger {
+	val out = new PrintWriter("app.log") //这个是特质构造器的一部分
+	out.println("# " + new Date().toString)//同样是特质构造器的一部分
+	def log(msg: String) { out.println(msg); out.flush() }
+}
+```
+
+![](http://img.blog.csdn.net/20180120223021163?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")  
+![](http://img.blog.csdn.net/20180120223304367?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")
+
+## 10.11 初始化特质中的字段 {#1011-初始化特质中的字段}
+
+**特质不能有构造器参数，每个特质都有一个无参数的构造器。**  
+**说明：**_**缺少构造器参数是特质与类之间唯一的技术差别**_**。除此之外，特质可以具备类的所有特性，比如具体的和抽象的字段，以及超类。**
+
+```
+val acct = new SavingsAccount with FileLogger("myapp.log") //错误，特质不能使用构造器参数
+
+//一个可行的方案：FileLogger可以有一个抽象的字段用来存放文件名
+trait FileLogger extends Logger{
+	val filename： String 
+	val out = new PrintStream(filename)
+	def log(msg: String) { out.println(msg); out.flush() }
+}
+```
+
+使用该特质的类可以重写filename字段。不过，像这样直截了当的方案并不可行：
+
+```
+val acct = new SavingsAccount with FileLogger {
+	val filename = "myapp.log   //这样行不通
+}
+```
+
+问题出在构造顺序上，FileLogger构造器先于子类构造器执行。new语句构造的其实是一个扩展自SavingsAccount\(超类\)并混入了FileLogger特质的匿名类的实例。filename的初始化只发生在这个匿名子类中，实际上，它根本不会发生——在轮到子类之前，FileLogger的构造器就会抛出一个空指针异常。  
+**解决办法之一就是在第8章介绍过的一个很隐晦的特性：提前定义。**以下是正确的版本：
+
+```
+val acct = new {	//new之后的是提前定义块
+	val filename = "myapp.log"
+} with SavingsAccount with FileLogger
+```
+
+**提前定义发生在常规的构造顺序之前。在FileLogger被构造时，filename已经是初始化过的了。**  
+**另一个解决办法是在FileLogger构造器中使用懒值：**
+
+```
+trait FileLogger extends Logger {
+	val filename:String 
+	lazy val out = new PrintStream(filename)
+	def log(msg: String) { out.println(msg) } //不需要写override
+}
+
+```
+
+这样，out字段将在初次被使用时才会初始化。而在那个时候，filename字段应该已经被设置好值了。**由于懒值在每次使用前都会检查是否已经初始化，它们使用起来并不那么高效。**
+
+## 10.12 扩展类的特质 {#1012-扩展类的特质}
+
+**特质可以扩展另一个特质，而由特质组成的继承层级也很常见。不那么常见的一种用法是，特质也可以扩展类，这个类将会自动成为所有混入该特质的超类。**
+
+```
+//LoggedException特质扩展自Exception类：
+trait LoggedException extends Exception with Logged{
+	def log() { log(getMessage()) }
+}
+```
+
+LoggedException有一个log方法用来记录异常的消息，log方法调用了Exception超类继承下来的getMessage\(\)方法。创建一个混入该特质的类：
+
+```
+class UnhappyException extends LoggedException {		//该类扩展自一个特质
+	override def getMessage() = "arggh!"
+}
+```
+
+**特质的超类自动成为任何混入该特质的类的超类。**  
+![](http://img.blog.csdn.net/20180121152220060?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")
+
+## 10.13 自身类型 {#1013-自身类型}
+
+**当特质扩展类时，编译器能够确保的一件事是所有混入该特质的类都认这个类作为超类。Scala还有另一套机制可以保证这一点：自身类型（self type）。**  
+当特质以如下代码开始定义时： this: 类型 =&gt; 它便只能被混入指定类型的子类。
+
+```
+trait LoggedException extends Logged{
+	this: Exception =>
+	  def log() { log(getMessage()) }
+}
+```
+
+注意该特质并不扩展Exception类，而是有一个自身类型Exception。这意味着，它只能被混入Exception的子类。  
+在特质的方法中，可以调用该自身类型的任何方法。如，log方法中的getMessage\(\)调用就是合法的，因为this必定是一个Exception。  
+带有自身类型的特质和带有超类型的特质很相似。两种情况都能够确保混入该特质的类能够使用某个特定类型的特质。在某些情况下，自身类型这种写法比超类型的特质更灵活。自身类型可以解决特质间的循环依赖。如果有两个彼此需要的特质时循环依赖就会产生。  
+自身类型也同样可以处理结构类型（structural type）——这种类型只给出类必须拥有的方法，而不是类的名称。以下是使用结构类型的LoggedException定义：
+
+```
+trait LoggedException extends Logged{
+	this: { def getMessage(): String } => 
+	  def log() { log(getMessage()) }
+}
+```
+
+这个特质可以被混入任何拥有getMessage方法的类。
+
+## 10.14 背后发生了什么 {#1014-背后发生了什么}
+
+**Scala需要将特质翻译成JVM的类和接口。**你不需要知道背后是如何做到的，但了解背后的原理有助于深入地理解特质。  
+**只有抽象方法的特质被简单地变成一个Java接口。**
+
+```
+trait Logger
+{
+    def log(msg: String)
+}
+```
+
+直接被翻译成Java代码为：
+
+```
+public interface
+ Logger{    //生成的Java接口
+    void log(String msg);
+}
+```
+
+**如果特质有具体的方法，Scala会创建一个伴生类，该伴生类会用静态方法存放特质的方法**：
+
+```
+trait ConsoleLogger extends Logger {
+    def log(msg:String) { println(msg) }
+}
+
+//在Java虚拟机中被翻译成
+public interface ConsoleLogger extend Logger{ 
+//生成的Java接口
+   void log(String msg);
+}
+
+
+public class ConsoleLogger$class
+{  
+//生成的Java伴生类
+    public static void log(ConsoleLogger self, String msg) {
+        println(msg);
+    }
+    ...
+}
+
+```
+
+这些伴生类不会有任何字段。特质中的字段对应到接口中的抽象的getter和setter方法。当某个类实现该特质时，字段被自动加入。例如：
+
+```
+trait ShortLogger extends Logger {
+	val maxLength = 15 //具体的字段
+	...
+}
+//被翻译成
+public interface ShortLogger extends Logger{
+	public abstract int maxLength();
+	public abstract void weird_prefix$maxLength_$eq(int);
+	...
+}
+```
+
+上面以weird开头的setter方法是需要的，用来初始化该字段。初始化发生在伴生类的一个初始化方法内：
+
+```
+public class ShortLogger$class
+{
+    public void $init$(ShortLogger self){
+        self.weird_prefix$maxLength_$eq(15)
+    }
+    ...
+}
+```
+
+当特质被混入类的时候，类将会得到一个带有getter和setter的maxLength字段。那个类的构造器会调用初始化方法。如果特质扩展自某个超类，则伴生类并不继承这个超类。该超类会被任何实现该特质的类继承。
+
+
+
+
 
 
 
