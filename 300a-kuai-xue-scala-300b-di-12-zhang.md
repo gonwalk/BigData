@@ -250,7 +250,7 @@ def runInThread(block: () => Unit) {
 
 这段代码以类型为\(\) =&gt; Unit的函数的形式给出，当调用该函数时，需要写成:
 
-runInThread{ \(\) =&gt; println\("Hi"\); Thread.sleep\(10000\); println\("Bye"\) } 
+runInThread{ \(\) =&gt; println\("Hi"\); Thread.sleep\(10000\); println\("Bye"\) }
 
 Scala程序员可以构建控制抽象：看上去像是编程语言的关键字的函数。
 
@@ -276,6 +276,33 @@ def indexOf(str:String, ch: Char):Int = {
 控制流程的实现依赖一个在匿名函数的return表达式中抛出的特殊异常，该异常从until函数传出，并被indexOf函数捕获。
 
 **注意：如果异常在被送往带名函数值前，在一个try代码块中被捕获掉了，那么相应的值就不会被返回。**
+
+# 第13 章 集合
+
+本章要点概述：
+
+* 所有集合都扩展自Iterable特质。
+* 集合有三大类，分别为序列、集合、映射。
+* 对于几乎所有集合类，Scala都同时提供了可变的和不可变的版本。
+* Scala列表要么是空的，要么拥有一头一尾，其中尾部本身又是一个列表。
+* 集是无先后次序的集合。
+* 用LinkedHashMapSet来保留插入顺序，或者用SortendSet来按顺序进行迭代。
+* +将元素添加到无先后次序的集合中；+:和:+向前或向后追加到序列； ++将两个集合串接在一起； -和--移除元素。
+* Iterable和Seq特质有数十个用于常见操作的方法。在编写冗长烦琐的循环之前，先看看这些方法是否能满足需求。
+* 映射、折叠和拉链操作是很有用的技巧，用来将函数或操作应用到集合中的元素。
+
+## 13.1 主要的集合特质
+
+![](/assets/Scala结合继承层级中的关键特质.png)
+
+Iterable指的是那些能生成用来访问集合中所有元素的Iterator的集合：
+
+```
+val coll = ...    //某种Iterable
+val iter = coll.iterator
+while(iter.hasNext)
+    对iter.next()执行某种操作
+```
 
 
 
