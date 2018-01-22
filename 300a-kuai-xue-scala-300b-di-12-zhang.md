@@ -141,9 +141,30 @@ Scala集合库中的一些常用的接受函数参数的方法：
 
 \(1 to 9\).filter\(\_ % 2 == 0\)         //2, 4, 6, 8
 
-reduceLeft方法接受一个二元函数——即一个带有两个参数的函数——并将它应用到序列中的所有元素，从左到右。例如：
+**reduceLeft方法接受一个二元函数——即一个带有两个参数的函数——并将它应用到序列中的所有元素，从左到右。**例如：
 
-\(1 to 9 \).reduceLeft\(_ \_ \* \_ \)        //等同于1 \* 2 \* 3 \* 4 \* 5\* 6 \* 7 \*8 \* 9_
+\(1 to 9 \).reduceLeft\(_ \_ _\* \_ \)        //等同于1 \* 2 \* 3 \* 4 \* 5\* 6 \* 7 \*8 \* 9\_
 
-注意：乘法函数的紧凑写法_ \_ \* \_，每个下划线代表一个参数。_
+**注意：乘法函数的紧凑写法**_** \_ **_** \* \_，每个下划线代表一个参数。**
+
+**sortWith方法用来对二元函数排序**。例如：
+
+"Mary has a little labm".split\(" "\).sortWith\(_.length &lt; \_.length\)_
+
+输出一个按长度递增排序的数组：Array\("a", "had", "Mary", "lamb", "little"\)。
+
+示例：取map中前几项的值，思路：先使用toList方法将Map转换为List类型，然后使用列表中的take\(n\)方法取出前n项的值，再将取出的前n项值通过toMap方法转换为Map类型：
+
+```
+var aMap = Map("a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4, "e" -> 5)  
+//aMap的类型为scala.collection.immutable.Map[String, Int]
+var bList = aMap.toList
+//bList: List[(String, Int)] = List((a, 1), (b, 2), (c, 3), (d, 4), (e, 5))
+var cList = bList.take(3)      //取出列表中的前3项
+//cList: List[(String, Int)] = List((a, 1), (b, 2), (c, 3))
+var nMap = cList.toMap     //将列表转为Map
+//nMap: scala.collection.immutable.Map[String, Int] = Map(a -> 1, b -> 2, c -> 3)
+```
+
+
 
