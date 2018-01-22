@@ -145,11 +145,11 @@ Scala集合库中的一些常用的接受函数参数的方法：
 
 \(1 to 9 \).reduceLeft\(_ \_ _\* \_ \)        //等同于1 \* 2 \* 3 \* 4 \* 5\* 6 \* 7 \*8 \* 9\_
 
-**注意：乘法函数的紧凑写法**_** \_ **_** \* \_，每个下划线代表一个参数。**
+**注意：乘法函数的紧凑写法**_\*\* \_ **\_** \* \_，每个下划线代表一个参数。\*\*
 
 **sortWith方法用来对二元函数排序**。例如：
 
-"Mary has a little labm".split\(" "\).sortWith\(_.length &lt; \_.length\)_
+"Mary has a little labm".split\(" "\).sortWith\(_.length &lt; \_.length\)\_
 
 输出一个按长度递增排序的数组：Array\("a", "had", "Mary", "lamb", "little"\)。
 
@@ -165,6 +165,117 @@ var cList = bList.take(3)      //取出列表中的前3项
 var nMap = cList.toMap     //将列表转为Map
 //nMap: scala.collection.immutable.Map[String, Int] = Map(a -> 1, b -> 2, c -> 3)
 ```
+
+## 12.6 闭包
+
+在Scala中，可以在任何作用域内定义函数：包、类甚至是另一个函数或方法。在函数体内， 可以访问到相应作用域内的任何变量。
+
+注意，函数可以在变量不再处于作用域内时被调用。
+
+闭包由代码和代码用到的任何非局部变量定义构成。
+
+示例：12.3节的mulBy函数：
+
+![](/assets/闭包.png)
+
+## 12.7 SAM转换
+
+在Scala中，一个函数可以作为另一个函数的参数进行传递。但Java并不支持函数，Java程序员需要付出更多才能达到相同的效果。其通常的做法是将动作放在一个实现某接口的类中，然后将该类的一个实例传递给另一个方法。
+
+在很多时候，这些接口都只有单个抽象方法（single abstract method），在Java中它们被称为SAM类型。例如，在按钮被点击时递增一个计数器：
+
+```
+var counter = 0
+val button = new JButton("Increment")
+button.addActionListener(new ActionListener{
+    override def actionPerformed(event: ActionEvent){
+        counter += 1
+    }
+})
+```
+
+好多样板代码，如果可以只传递一个函数给addActionListener 就好了，像这样：
+
+button.addActionListener\(\(event: ActionEvent\) =&gt; counter += 1\)
+
+为了启用这个语法，需要提供一个隐式转换把一个函数转换成一个ActionListener的实例：
+
+```
+implicit def makeAction(action: (ActionEvent) => Unit) =
+  new ActionListener {
+      override def actionPerformed(event: ActionEvent) { action(event) }
+  }
+```
+
+只要简单地将这'个函数和界面代码放在一起，就可以在所有预期ActionListener对象的地方传入任何\(ActionEvent\) =&gt; Unit函数了。
+
+## 12.8 柯里化
+
+柯里化（currying）指的是将原来接受两个参数的函数变成新的接受一个参数的函数的过程。新的函数返回一个以原有第二个参数作为参数的函数。
+
+```
+//该函数接受两个参数：
+def mul(x: Int, y: Int) = x * y
+//以下函数接受一个参数，生成另一个接受单个参数的函数：
+def mulOneAtATime(x: Int) = (y: Int) => x * y
+```
+
+使用上面的接受一个参数的函数，要计算两个数的乘积，需要调用： mulOneAtATime\(6\)\(7\)  //等价于val m = mulOneAtATime\(6\)  val res = m\(7\)   结果都为42
+
+Scala支持如下简写来定义上面的那个柯里化函数：def mulOneAtATime\(x: Int\)\(y: Int\) = x \* y
+
+**corresponds方法可以比较两个序列是否在某个比对条件下相同**。例如：
+
+```
+val a = Array("Hello", "World")
+val b = Array("hello", "world")
+a.corresponds(b)(_.equalsIgnoreCase(_))  //相当于a.equalsIgnoreCase(b)
+```
+
+上面的函数.equalsIgnoreCase\( \_ \)是以一个经过柯里化的参数的形式传递的，有自己独立的\(...\)。查看Scaladoc，会看到corresponds的类型声明如下：def conrresponds\[B\]\(that: Seq\[B\]\)\(p: \(A, B\) =&gt; Boolean\) : Boolean
+
+在这里，that序列和前提函数p是分开的两个柯里化的参数。类型推断器可以分析出B出自that的类型，因此就可以利用这个信息来分析作为参数p传入的函数。
+
+## 12.9 控制抽象
+
+在Scala中，可以将一系列语句归组成不带参数也没有返回值的函数。如下函数在线程中执行某段代码：
+
+```
+def runInThread(block: () => Unit) {
+    new Thread {
+        override def run() { block() }
+    }.start()
+}
+```
+
+这段代码以类型为\(\) =&gt; Unit的函数的形式给出，当调用该函数时，需要写成:
+
+runInThread{ \(\) =&gt; println\("Hi"\); Thread.sleep\(10000\); println\("Bye"\) } 
+
+Scala程序员可以构建控制抽象：看上去像是编程语言的关键字的函数。
+
+换名调用参数，和一个常规（或者说换值调用）的参数不同，函数在被调用时，参数表达式不会被其值。
+
+## 12.10 return表达式
+
+在Scala中，不需要使用return语句来返回函数值，函数的返回值就是函数体的值。不过，可以使用return来从一个匿名函数中返回值给包含这个匿名函数的带名函数。这对于控制抽象是很有用的。如下函数：
+
+```
+def indexOf(str:String, ch: Char):Int = {
+    var i = 0
+    until (i == str.length) {
+        if(str(i) == ch) return i
+        i += 1
+    }
+    return -1
+}
+```
+
+在这里，匿名函数{ if\(str\(i\) == ch\) return i;  i += 1 }被传递给until。当return表达式被执行时，包含它的带名函数indexOf终止并返回给定的值。如果要在带名函数中使用return的话，则需要给出其返回类型。如在上述的indexOf函数中，编译器没法推断出他会返回Int。
+
+控制流程的实现依赖一个在匿名函数的return表达式中抛出的特殊异常，该异常从until函数传出，并被indexOf函数捕获。
+
+**注意：如果异常在被送往带名函数值前，在一个try代码块中被捕获掉了，那么相应的值就不会被返回。**
 
 
 
