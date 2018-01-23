@@ -620,7 +620,7 @@ res10: Int = -16              //1-（（（（7-（（（2-（（9-3）-6））�
 
 ![](/assets/foldLeft.png)
 
-说明：初始值和操作符是两个分开定义的“柯里化”参数，这样Scala就能用初始值的类型推断出操作符的类型定义。如，在List\(1,7, 2, 9\).foldLeft\(" "\)\(_ \_   +    \_\)中，初始值是一个字符串，因此操作符必定是一个类型定义为\(String, Int\) =&gt; String的函数。_
+说明：初始值和操作符是两个分开定义的“柯里化”参数，这样Scala就能用初始值的类型推断出操作符的类型定义。如，在List\(1,7, 2, 9\).foldLeft\(" "\)\(_ \_   +    \_\)中，初始值是一个字符串，因此操作符必定是一个类型定义为\(String, Int\) =&gt; String的函数。\_
 
 **亦可以使用/:操作符写foldLeft操作，初始值是第一个操作元。注意，由于操作符以冒号结尾，它是第二个操作元的方法。**
 
@@ -656,7 +656,7 @@ scala> (Map[Char, Int]() /: "Mississippi"){
 res16: scala.collection.immutable.Map[Char,Int] = Map(M -> 1, i -> 4, s -> 4, p -> 2)
 ```
 
- -&gt; 表示的是一个映射，这里先遍历字符串中的每个字母，每遇到同一个字母，其频率就加一，并与该字母组成映射关系。
+-&gt; 表示的是一个映射，这里先遍历字符串中的每个字母，每遇到同一个字母，其频率就加一，并与该字母组成映射关系。
 
 说明：任何while循环都可以用折叠来替代。构建一个把循环中被更新的所有变量结合在一起的数据结构，然后定义一个操作，实现循环中的一步。
 
@@ -687,9 +687,6 @@ res21: List[Double] = List(50.0, 40.0, 9.96)
 scala> ((prices zip quantities) map { p => p._1 * p._2 }) sum
 warning: there was one feature warning; re-run with -feature for details
 res20: Double = 99.96000000000001
-
-
-
 ```
 
 **zip方法将前后两个集合组合成一个个对偶的列表。**上面val prices = List\(5.0, 20.0, 9.96\) 得到List\[Double\] = List\(5.0, 20.0, 9.96\)
@@ -715,7 +712,6 @@ res1: (Char, Int) = (l,3)
 
 scala> "Scala".zipWithIndex.max._2   //具备最大编码的值的下标
 res2: Int = 3
-
 ```
 
 ## 13.12 迭代器
@@ -806,7 +802,57 @@ res9: scala.collection.immutable.Stream[String] = Stream(#!/usr/bin/env bash, , 
 
 scala> words(6)
 res10: String = # The ASF licenses this file to You under the Apache License, Version 2.0
+```
 
+## 13.14 懒视图
+
+流方法是懒执行的，仅当结果别需要时才计算。可以对其他集合应用view方法来得到类似的效果。该方法产出一个其方法总是被懒执行的集合。和流一样，用force方法可以对懒值视图强制求值，将得到与原集合相同类型的新集合。和流不同，这些视图并不缓存任何值。当再次调用powers\(6\)时，pow\(10, 6\)将重新计算。
+
+懒集合对于处理那种需要以多种方式进行变换的大型集合时很有好处的，因为它避免了构建出大型中间集合的需要。
+
+```
+val powers = (0 until 1000).view.map(pow(10, _))
+powers(6)  //将计算pow(10, 6)，但其他值的幂并没有被计算。
+
+(0 until 1000).map(pow(10, _)).map(1 / _)
+//该方式将计算10的n次方的集合，然后再对每个得到的值取倒数。
+
+(0 until 1000).view.map(pow(10, _)).map(1 / _).force
+//该方式产出的是记住了两个map操作的视图，当求值动作被强制执行时，对于每个元素，这两个操作被同时记住，不需要额外构建中间集合。
+```
+
+## 13.15 与Java集合的互操作 \*\*\*\*\*（重点）
+
+JavaConversions对象提供了用于在Scala和Java集合之间来回转换的一组方法。新目标值显示地指定一个类型来触发转换。例如：
+
+```
+import scala.collection.JavaConversions._
+
+val props:scala.collection.mutable.Map[String, String] = System.getProperties()
+
+```
+
+这些转换产出的是包装器，可以使用目标接口访问原本的值。上例中的props就是一个包装器，其方法将调用底层的Java对象。如果调用 props\("com.horstmann.scala"\) = "impatient"，那么包装器将调用底层的Properties对象的put\("com.horstmann.scala", "impatient"\)。
+
+![](/assets/Java与Scala集合的转换.png)
+
+## 13.16 线程安全的集合
+
+当从多个线程访问一个可变集合时，需要确保不会在其他线程正在访问它时对其进行修改。Scala类库提供了六个特质，可以将它们混入集合，让集合的操作变成同步的：
+
+```
+SynchronizedBuffer
+SynchronizedMap
+SynchronizedPriorityQueue
+SynchronizedQueue
+SynchronizedSet
+SynchronizedStack
+```
+
+例如，如下代码构建的就是一个带有同步操作的映射：
+
+```
+val scores = new scala.collection.mutable.HashMap[String, Int] with scala.collection.mutable.SynchronizedMap[String, INT]
 ```
 
 
