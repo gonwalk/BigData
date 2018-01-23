@@ -564,7 +564,6 @@ names: List[String] = List(Peter, Paul, Mary)
 
 scala> for(n <- names) yield n.toUpperCase
 res0: List[String] = List(PETER, PAUL, MARY)
-
 ```
 
 **如果函数产出一个集合而不是单个值的话，可能会想要将所有的值串接在一起，可以使用flatMap。**例如：
@@ -584,7 +583,6 @@ res4: List[scala.collection.immutable.Vector[String]] = List(Vector(PETER, peter
 
 scala> names.flatMap(ulcase)
 res5: List[String] = List(PETER, peter, PAUL, paul, MARY, mary)
-
 ```
 
 提示：使用flatMap并传入返回Option的函数，最终返回的集合将包含所有的值V，前提是函数返回Some\(V\)。
@@ -604,12 +602,11 @@ scala> names.foreach(println _)
 Peter
 Paul
 Mary
-
 ```
 
 ## 13.10 化简、折叠和扫描
 
-map方法将一元函数应用到集合的所有元素，本节介绍的方法将会用二元函数来组合集合中的元素。类似c.reduceLeft\(op\)这样的调用将op相继应用到元素：
+**map方法将一元函数应用到集合的所有元素，本节介绍的方法将会用二元函数来组合集合中的元素。类似c.reduceLeft\(op\)这样的调用将op相继应用到元素**：
 
 ```
 scala> List(1,7,2,9,3,6).reduceLeft(_ - _)
@@ -617,7 +614,198 @@ res9: Int = -26                //((((1-7)-2)-9)-3)-6  ，将最后一个值之�
 
 scala> List(1,7,2,9,3,6).reduceRight(_ - _)
 res10: Int = -16              //1-（（（（7-（（（2-（（9-3）-6））））），将最前一个值之前的其他值作为右部的整体
+```
 
+以不同于集合首元素的初始元素开始计算通常也很有用。对coll.foldLeft\(init\)\(op\)的调用将会计算
+
+![](/assets/foldLeft.png)
+
+说明：初始值和操作符是两个分开定义的“柯里化”参数，这样Scala就能用初始值的类型推断出操作符的类型定义。如，在List\(1,7, 2, 9\).foldLeft\(" "\)\(_ \_   +    \_\)中，初始值是一个字符串，因此操作符必定是一个类型定义为\(String, Int\) =&gt; String的函数。_
+
+**亦可以使用/:操作符写foldLeft操作，初始值是第一个操作元。注意，由于操作符以冒号结尾，它是第二个操作元的方法。**
+
+```
+scala> List(1,7,2,9).foldLeft(0)(_ - _)
+res11: Int = -19
+
+scala> List(1,7,2,9).foldLeft(0)(_ + _)
+res12: Int = 19
+
+scala> (0 /: List(1, 7, 2, 9))(_ - _)
+res13: Int = -19
+```
+
+折叠在计算集合中各元素之和时看起来用处不大，因为调用coll.sum直接可以得到结果。但折叠有时候可以作为循环的替代，如下计算某个字符串中每个字母出现的频率。方式之一是访问每个字母，然后更新一个可变映射：
+
+```
+scala> val freq = scala.collection.mutable.Map[Char, Int]()
+freq: scala.collection.mutable.Map[Char,Int] = Map()
+
+scala> for(c <- "Mississippi") freq(c) = freq.getOrElse(c, 0) + 1
+
+scala> freq
+res15: scala.collection.mutable.Map[Char,Int] = Map(M -> 1, s -> 4, p -> 2, i -> 4)
+```
+
+另一种思考方式：在每一步，将频率映射和新遇到的字母结合在一起，产生出一个新的频率映射，这就是折叠。
+
+```
+scala> (Map[Char, Int]() /: "Mississippi"){
+     | (m, c) => m + (c -> (m.getOrElse(c, 0) + 1))
+     | }
+res16: scala.collection.immutable.Map[Char,Int] = Map(M -> 1, i -> 4, s -> 4, p -> 2)
+```
+
+ -&gt; 表示的是一个映射，这里先遍历字符串中的每个字母，每遇到同一个字母，其频率就加一，并与该字母组成映射关系。
+
+说明：任何while循环都可以用折叠来替代。构建一个把循环中被更新的所有变量结合在一起的数据结构，然后定义一个操作，实现循环中的一步。
+
+最后，scanLeft和scanRight方法将折叠和映射操作结合在一起，得到的是包含所有中间结果的集合。例如：
+
+```
+(1 to 10).scanLeft(0)(_ + _)
+//产生所有中间结果和最后的和： Vector(0,1,3,6,10, 15, 21, 28, 36, 45, 55)
+```
+
+## 13.11 拉链操作
+
+前一节的方法是将操作应用到同一个集合中相邻的元素。有时，想把两个集合相互对应的元素结合在一起。如：
+
+```
+scala> val prices = List(5.0, 20.0, 9.96)
+prices: List[Double] = List(5.0, 20.0, 9.96)
+
+scala> val quantities = List(10, 2, 1)
+quantities: List[Int] = List(10, 2, 1)
+
+scala> prices zip quantities
+res19: List[(Double, Int)] = List((5.0,10), (20.0,2), (9.96,1))
+
+scala> (prices zip quantities).map { p => p._1 * p._2 }
+res21: List[Double] = List(50.0, 40.0, 9.96)
+
+scala> ((prices zip quantities) map { p => p._1 * p._2 }) sum
+warning: there was one feature warning; re-run with -feature for details
+res20: Double = 99.96000000000001
+
+
+
+```
+
+**zip方法将前后两个集合组合成一个个对偶的列表。**上面val prices = List\(5.0, 20.0, 9.96\) 得到List\[Double\] = List\(5.0, 20.0, 9.96\)
+
+，它的结构像拉链的齿状结构一样将两个集合结合在一起，所以将zip方法叫做“拉链（zip）“。
+
+**如果一个集合比另一个短，那么结果中的对偶数量和较短的那个集合的元素的数量相同。**
+
+**zipAll方法可以指定较短列表的缺省值。zipWithIndex方法返回对偶的列表，其中每个对偶中第二个组成部分是每个元素的下标。这在计算具备某种属性的元素的下标时很有用。**
+
+```
+scala> List(5.0, 20.0, 9.95) zip List(10, 2)
+res1: List[(Double, Int)] = List((5.0,10), (20.0,2))
+
+scala> List(5.0, 20.0, 9.95).zipAll( List(10, 2), 0.0, 1)
+res2: List[(Double, Int)] = List((5.0,10), (20.0,2), (9.95,1))
+
+scala> "Scala".zipWithIndex
+res0: scala.collection.immutable.IndexedSeq[(Char, Int)] = Vector((S,0), (c,1), (a,2), (l,3), (a,4))
+
+scala> "Scala".zipWithIndex.max
+res1: (Char, Int) = (l,3)
+
+scala> "Scala".zipWithIndex.max._2   //具备最大编码的值的下标
+res2: Int = 3
+
+```
+
+## 13.12 迭代器
+
+可以使用iterator方法从集合获得一个迭代器，这对于开销很大的集合很有用。例如，Source.fromFile产出一个迭代器，是因为将整个文件都读取到内存可能并不是很多高效的做法。Iterable中有一些方法可以产出迭代器，比如grouped或sliding。有了迭代器就可以使用next和hasNext方法遍历集合中的元素了。
+
+```
+while(iter.hasNext)
+    //对iter.next()执行某种操作
+//或者，也可以使用for循环
+for(elem <- iter)
+    //对elem执行某种操作
+```
+
+上述两种循环都会讲迭代器移动到集合的末尾，在此之后它就不能再使用了。
+
+**Iterator类定义了一些与集合方法使用起来完全相同的方法。在调用诸如map、filter、count、sum甚至length方法之后，迭代器将位于集合的尾端，不能再继续使用它。而对于其他方法而言，比如find或take，迭代器位于已找到元素或已取得元素之后。**
+
+如果感到迭代器很繁琐，则**可以使用toArray、toIterable、toSeq、toSet或toMap将相应的值拷贝到一个新的集合中。**
+
+## 13.13 流
+
+迭代器相对于集合而言是一个“懒”的替代品。在迭代器中，每次对next的调用都会改变迭代器的指向。**流（stream）提供的是一个不可变的替代品。流是一个尾部被懒计算的不可变列表——只有当需要的时候它才会被计算。**
+
+```
+def numsFrom(n: BigInt): Stream[Int] = n #:: numsFrom(n + 1)
+val tenOrMore = numsFrom(10)
+tenOrMore.tail.tail.tail
+val squares = numsFrom(1).map(x => x * x)
+squares.take(5).force    //调用take方法以获得更多答案（数据）；然后调用force，将强制对所有的值求值。
+//千万不要调用squares.force 这个调用尝试对一个无穷流的所有成员进行求值，将引发OutOfMemoryError。
+```
+
+\#::操作符构建出来的是一个流，squares.tail强制对下一个元素求值。
+
+```
+scala> def numsFrom(n: BigInt): Stream[BigInt] = n #:: numsFrom(n + 1)
+numsFrom: (n: BigInt)Stream[BigInt]
+
+scala> val tenOrMore = numsFrom(10)
+tenOrMore: Stream[BigInt] = Stream(10, ?)
+
+scala> tenOrMore
+   val tenOrMore: Stream[BigInt]
+
+scala> tenOrMore.tail.tail.tail
+res3: scala.collection.immutable.Stream[BigInt] = Stream(13, ?)
+
+scala> val squares = numsFrom(1).map(x => x*x)
+squares: scala.collection.immutable.Stream[scala.math.BigInt] = Stream(1, ?)
+
+scala> squares.take(5).force
+res4: scala.collection.immutable.Stream[scala.math.BigInt] = Stream(1, 4, 9, 16, 25)
+
+scala> squares.take(5)
+res5: scala.collection.immutable.Stream[scala.math.BigInt] = Stream(1, ?)
+```
+
+也可以从迭代器构造一个流，如：Source.getLines方法返回一个Iterator\[String\]。用这个迭代器，对于每一行只能访问一次。而流将缓冲访问过的行，运行重新访问它们：
+
+```
+val words = Sources.fromFile("/home/hdfs/software/spark/ ").getLines.toStream
+words
+words(6)
+words
+```
+
+使用spakr-shell模式，获取集群的/home/hdfs/software/spakr/bin/spark-shell文件的内容：
+
+```
+scala> import scala.collection.immutable.Stream
+import scala.collection.immutable.Stream
+
+scala> import scala.io.Source
+import scala.io.Source
+
+scala> val words = Source.fromFile("/home/hdfs/software/spark/bin/spark-shell").getLines.toStream
+words: scala.collection.immutable.Stream[String] = Stream(#!/usr/bin/env bash, ?)
+
+scala> words
+res7: scala.collection.immutable.Stream[String] = Stream(#!/usr/bin/env bash, ?)
+
+scala> words(6)
+res8: String = # The ASF licenses this file to You under the Apache License, Version 2.0
+
+scala> words
+res9: scala.collection.immutable.Stream[String] = Stream(#!/usr/bin/env bash, , #, # Licensed to the Apache Software Foundation (ASF) under one or more, # contributor license agreements.  See the NOTICE file distributed with, # this work for additional information regarding copyright ownership., # The ASF licenses this file to You under the Apache License, Version 2.0, ?)
+
+scala> words(6)
+res10: String = # The ASF licenses this file to You under the Apache License, Version 2.0
 
 ```
 
