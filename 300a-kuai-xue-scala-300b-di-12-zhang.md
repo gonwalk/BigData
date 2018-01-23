@@ -295,6 +295,10 @@ def indexOf(str:String, ch: Char):Int = {
 
 ![](/assets/Scala结合继承层级中的关键特质.png)
 
+关于集合的分类：Seq、Set、Map及其比较，可以参考博客：
+
+[http://blog.csdn.net/bluishglc/article/details/51085917](http://blog.csdn.net/bluishglc/article/details/51085917)
+
 Iterable指的是那些能生成用来访问集合中所有元素的Iterator的集合：
 
 ```
@@ -304,5 +308,192 @@ while(iter.hasNext)
     对iter.next()执行某种操作
 ```
 
+这是遍历一个集合最基本的方式。  
+**Seq是一个有先后次序的值的序列，比如数组或列表。IndexedSeq运行通过整型的下标快速地访问任意元素。比如，ArrayBuffer是带有下标的，而链表不是。**  
+**Set是一组没有先后次序的值。在SortedSet中，元素以某种排过序的顺序被访问。Map是一组键值对偶。SortedMap按照键的排序访问其中的实体。**  
+这个继承层级和Java很相似，同时有一些对其有一些不错的改进：  
+1. 映射隶属于同一个继承层级而不是一个单独的层级关系。  
+2. IndexedSeq是数组的超类型，但不是列表的超类型，以便于区分。  
+说明：在Java中，ArrayList和LinkedList实现同一个List接口，使得编写那种需要优先考虑随机访问效率的代码十分困难。例如，在一个已排序的序列中进行查找的时候。这是最初的Java集合框架中一个有问题的设计决定。后来的版本加入了RandomAccess这个标记接口来应对这个缺陷。  
+每个Scala集合特质或类都有一个带有apply方法的伴生对象，这个apply方法可以用来构建该集合中的实例。
 
+## 13.2 可变和不可变集合 {#132-可变和不可变集合}
+
+Scala同时支持可变的和不可变的集合。不可变的集合从不改变，因此可以安全地共享其引用，甚至是在一个多线程的应用程序中也没问题。举例，既有scala.collection.mutable.Map，也有scala.collection.immutable.Map，它们有一个共有的超类型scala.collection.Map（这个超类型没有定义任何该值操作）。  
+**Scala优先采用不可变集合**。scala.collection包中的半生对象产出不可变的集合。如，scala.collection.Map\(“Hello” -&gt; 42\)是一个不可变的映射。  
+**总被引入的scala包中和Predef对象里有指向不可变特质的类型别名List、Set和Map。如，Predef.Map和scala.collection.immutable.Map是一回事。**  
+提示：使用如下语句：  
+import scala.collection.mutable  
+就可以通过Map方法得到不可变的映射，用mutable.Map得到可变的映射，因为引入了上述可变的包，而默认情况下的Map指的是scala.collection.immutable下的不可变的映射。
+
+```
+scala> import scala.collection.mutable
+import scala.collection.mutable
+
+scala> val b = mutable.Map("a" -> 1, "b" -> 2, "c" -> 3)
+b: scala.collection.mutable.Map[java.lang.String,Int] = Map(c -> 3, a -> 1, b -> 2)
+
+scala> val a = Map("a" -> 1, "b" -> 2, "c" -> 3)
+a: scala.collection.immutable.Map[java.lang.String,Int] = Map(a -> 1, b -> 2, c -> 3)
+```
+
+不可变集合的用处：可以基于老的集合创建新的集合。如果numbers是一个不可变的集（且不包含元素9），那么numbers + 9就是一个包含了numbers和9的新集。如果9已经在集中，则得到的是指向老集的引用。这在递归计算中很有用。
+
+```
+scala> val numbers = Set(1,2,3,4,5,6)
+numbers: scala.collection.immutable.Set[Int] = Set(5, 1, 6, 2, 3, 4)
+
+scala> numbers + 9
+res8: scala.collection.immutable.Set[Int] = Set(5, 1, 6, 9, 2, 3, 4)
+
+scala> numbers
+res9: scala.collection.immutable.Set[Int] = Set(5, 1, 6, 2, 3, 4)
+
+scala> numbers + 6
+res10: scala.collection.immutable.Set[Int] = Set(5, 1, 6, 2, 3, 4)
+
+scala> numbers
+res11: scala.collection.immutable.Set[Int] = Set(5, 1, 6, 2, 3, 4)
+```
+
+例如，在计算某个整数中所有出现过的阿拉伯数字的集：
+
+```
+def digits(n: Int):Set[Int] =
+	if(n < 0) digits(-n)  //小于0的取反，为非负
+	else if(n < 10) Set(n)//0~10放入集合
+	else digits( n/10 ) + ( n % 10)
+```
+
+这个方法从包含单个数字的集开始，每一步，添加进另外一个数字。添加某个数字并不会改变原有的集，而是构造出一个新的集。
+
+## 13.3 序列 {#133-序列}
+
+![](http://img.blog.csdn.net/20180122205435578?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")  
+Vector是ArrayBuffer的不可变版本：一个带有下边的序列，支持快速的随机访问。向量是以树形结构的形式实现的，每个节点可以有不超过32个子节点。对于一个有100万个元素的向量而言，只需要四层节点（10^3 ~ 2^10， 10^6 ~32^4）。访问这样的一个列表中的某个元素只需要4跳，而在链表中，同样的操作评价需要500000跳。
+
+Range表示一个整数序列，Range对昂并不存储所有值而只是起始值、结束值和增量值。可以用to和until方法构造Range对象。  
+![](http://img.blog.csdn.net/20180122210647460?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")  
+栈、队列、优先级队列都是标准的数据结构，用来实现特定算法。不过，链表有些特殊，它们和在Java、C++或数据结构中接触的可能不太一样。
+
+## 13.4 列表 {#134-列表}
+
+**在Scala中，列表要么是Nil（即空表），要么是一个head元素加上一个tail，而tail又是一个列表。::操作符从给定的头和尾创建一个新的列表。**例如：  
+9 :: List\(4, 2\) //List\(9, 4, 2\)  
+亦可以将这个列表写成：  
+9 :: 4 :: 2 :: Nil  
+**注意::是右结合的，通过::操作符，列表将从末端开始构建**，上式构建方向即是9::\(4::\(2::Nil\)\)  
+在Java或C++中，使用迭代器遍历链表。在Scala中，也可以这样做，但是使用递归会更加自然。例如，如下函数计算整型链表中所有元素之和：
+
+```
+def sum(lst: List[Int]): Int = 
+	if(lst == Nil) 0 else lst.head += sum(lst.tail)
+```
+
+或者，也可以使用模式匹配：
+
+```
+def sum(lst: List[Int]): Int = lst match {
+	case Nil => 0
+	case h :: t => h + sum(t) //h是lst.head而t 是lst.tail
+}
+```
+
+```
+scala> val list  = List(1, 2, 3, 4, 5, 6)
+list: List[Int] = List(1, 2, 3, 4, 5, 6)
+scala> def sum(lst:List[Int]): Int = 
+     | if(lst == Nil) 0 else lst.head + sum(lst.tail)
+sum: (lst: List[Int])Int
+scala> sum(list)
+res15: Int = 21
+scala> List(1, 2, 3, 4, 5, 6).sum  //直接调用Scala类库中的sum方法
+res17: Int = 21
+```
+
+注意：第二个模式中的::操作符，它将列表“析构”成头部和尾部。
+
+## 13.5 可变列表 {#135-可变列表}
+
+**可变的LinkedList和不可变的List相似，只不过可以通过对elem引用赋值来修改其头部，对next引用赋值来修改尾部。**注意，这里并不是给head和tail赋值。  
+示例，如下循环把所有负值都改成0：
+
+```
+val lst = scala.collection.mutable.LinkedList(1, -2, 7, -9)
+var cur = lst 
+while( cur != Nil) {
+	if(cur.elem < 0) cur.elem = 0
+	cur = cur.next
+}
+```
+
+如下循环将取出每两个元素中的一个：
+
+```
+var cur = lst 
+while(cur != Nil && cur.next != Nil){
+	cur.next = cur.next.next
+	cur = cur.next
+}
+```
+
+这里，变量cur用起来就像是迭代器，但是实际上它的类型是LinkedList。除LinkedList之外，Scala还提供了一个DoubleLinkedList，区别是它多带一个prev因用。  
+注意：如果要把列表中的某个节点变成列表中的最后一个节点，不能将next因用设为Nil，而应该将它设为LinkedList.empty。也不要将它设成null，不然在遍历该链表时会遇到空指针错误。
+
+## 13.6 集 {#136-集}
+
+集是不重复元素的集合。尝试将已有的元素加入集值没有效果。如Set\(2, 0, 1 \) + 1 和Set\(2, 0, 1 \) + 1是一样的。  
+和列表不同，集并不保留元素插入的顺序。缺省情况下，集是以哈希集实现的，其元素根据hashCode方法的值进行组织。（Scala和Java一样，每个对象都有hashCode方法。）如，遍历Set\(1,2,3,4,5,6\)元素被访问到的次序为：5 1 6 2 3 4。  
+在哈希集中查找元素要比在数组或列表中快得多。链式哈希集可以记住元素被插入的顺序，它会维护一个链表来达到这个目的。  
+val weekdays = scala.collection.mutable.LinkedHashSet\(“Mo”, “Tu”, “We”, “Th”, “Fr”\)  
+如果想要按照已排序的顺序访问集中的元素，用已排序的集：  
+scala.collection.immutable.SortedSet\(1,2,3,4,5,6\)  
+**已排序的集是用红黑树实现的。**  
+位集（bit set）是集的一种实现，以一个字符序列的方式存放非负整数。如果集中有i，则第i个字位是1.这是个高效的实现，只要最大元素不是特别大。Scala提供了可变和不可变的两个BitSet类。  
+contains方法检查某个集是否包含给定的值。subsetOf方法检查某个集中的所有元素是否都被另一个集包含。
+
+```
+scala> val digits = Set(1,7, 2, 9)
+digits: scala.collection.immutable.Set[Int] = Set(1, 7, 2, 9)
+
+scala> digits contains 0
+res29: Boolean = false
+
+scala> digits contains 2
+res30: Boolean = true
+
+scala> Set(1,2) subsetOf digits
+res31: Boolean = true
+
+scala> digits.contains(2)
+res32: Boolean = true
+
+scala> Set(1,2).subsetOf(digits)
+res33: Boolean = true
+```
+
+union、intersect和diff方法执行通常的集操作，也可以将它们写做\| 、&和&~。还可以将联合（union）写做++，将差异（diff）写做–。
+
+```
+val digits = Set(1,7, 2, 9)
+val primes = Set(2, 3, 5, 7)
+digits union primes  //Set(1, 2, 3, 5, 7, 9)
+digits & primes //等于Set(2, 7)
+digits -- primes       //等于Set(1, 9)
+```
+
+## 13.7 用于添加或去除元素的操作符 {#137-用于添加或去除元素的操作符}
+
+![](http://img.blog.csdn.net/20180122222359757?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")
+
+```
+scala> Vector(1,2,3) :+ 5
+res34: scala.collection.immutable.Vector[Int] = Vector(1, 2, 3, 5)
+
+scala> 1 +: Vector(1,2,3)
+res35: scala.collection.immutable.Vector[Int] = Vector(1, 1, 2, 3)
+```
+
+注意：和其他以冒号结尾的操作符一样，+:是右结合的，是右侧操作元的方法。  
+这些操作符都返回新的集合（和原集合类型保持一致），不会修改原有的集合。而可变集合有+=操作符用于修改左侧操作元。
 
