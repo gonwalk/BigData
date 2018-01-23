@@ -535,9 +535,21 @@ col1 ++ col2
 
 ## 13.8 常用方法
 
+![](/assets/Iterable特质的重要方法.png)
 
+![](/assets/Iterable特质重要方法二.png)
 
+![](/assets/Seq特质的重要方法.png)
 
+## 13.9 将函数映射到集合
+
+map方法可以将某个函数应用到集合中的每个元素并产出其结果的集合。例如，给定一个字符串的列表：
+
+```
+val names = List("Peter", "Paul", "Mary")
+//可以使用如下代码生成一个全大写的字符串列表：
+names.map(_.toUpperCase)   //List("PETER", "PAUL", "MARY")
+```
 
 
 
