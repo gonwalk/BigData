@@ -543,12 +543,82 @@ col1 ++ col2
 
 ## 13.9 将函数映射到集合
 
-map方法可以将某个函数应用到集合中的每个元素并产出其结果的集合。例如，给定一个字符串的列表：
+**map方法可以将某个函数应用到集合中的每个元素并产出其结果的集合**。例如，给定一个字符串的列表：
 
 ```
 val names = List("Peter", "Paul", "Mary")
 //可以使用如下代码生成一个全大写的字符串列表：
 names.map(_.toUpperCase)   //List("PETER", "PAUL", "MARY")
+//和下面的代码效果完全一样：
+for(n <- names) yield n.toUpperCase
+```
+
+spark shell运行过程：
+
+```
+scala> names.map(_.toUpperCase)
+res2: List[String] = List(PETER, PAUL, MARY)
+
+scala> val names = List("Peter","Paul","Mary")
+names: List[String] = List(Peter, Paul, Mary)
+
+scala> for(n <- names) yield n.toUpperCase
+res0: List[String] = List(PETER, PAUL, MARY)
+
+```
+
+**如果函数产出一个集合而不是单个值的话，可能会想要将所有的值串接在一起，可以使用flatMap。**例如：
+
+```
+def ulcase(s: String) = Vector(s.toUpperCase(), s.toLowerCase())
+```
+
+spark-shell运行过程：
+
+```
+scala> def ulcase(s:String) = Vector(s.toUpperCase(), s.toLowerCase())
+ulcase: (s: String)scala.collection.immutable.Vector[String]
+
+scala> names.map(ulcase)
+res4: List[scala.collection.immutable.Vector[String]] = List(Vector(PETER, peter), Vector(PAUL, paul), Vector(MARY, mary))
+
+scala> names.flatMap(ulcase)
+res5: List[String] = List(PETER, peter, PAUL, paul, MARY, mary)
+
+```
+
+提示：使用flatMap并传入返回Option的函数，最终返回的集合将包含所有的值V，前提是函数返回Some\(V\)。
+
+collect方法用于偏函数（partial function）——那些并没有对所有可能的输入值进行定义的函数。它产出被定义的所有参数的函数值的集合。例如：
+
+```
+scala> "-3+4".collect{ case '+' => 1; case '-' => -1 }
+res6: scala.collection.immutable.IndexedSeq[Int] = Vector(-1, 1)
+
+scala> names.foreach(println)
+Peter
+Paul
+Mary
+
+scala> names.foreach(println _)
+Peter
+Paul
+Mary
+
+```
+
+## 13.10 化简、折叠和扫描
+
+map方法将一元函数应用到集合的所有元素，本节介绍的方法将会用二元函数来组合集合中的元素。类似c.reduceLeft\(op\)这样的调用将op相继应用到元素：
+
+```
+scala> List(1,7,2,9,3,6).reduceLeft(_ - _)
+res9: Int = -26                //((((1-7)-2)-9)-3)-6  ，将最后一个值之前的其他值作为左部的整体
+
+scala> List(1,7,2,9,3,6).reduceRight(_ - _)
+res10: Int = -16              //1-（（（（7-（（（2-（（9-3）-6））））），将最前一个值之前的其他值作为右部的整体
+
+
 ```
 
 
