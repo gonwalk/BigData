@@ -829,7 +829,6 @@ JavaConversions对象提供了用于在Scala和Java集合之间来回转换的�
 import scala.collection.JavaConversions._
 
 val props:scala.collection.mutable.Map[String, String] = System.getProperties()
-
 ```
 
 这些转换产出的是包装器，可以使用目标接口访问原本的值。上例中的props就是一个包装器，其方法将调用底层的Java对象。如果调用 props\("com.horstmann.scala"\) = "impatient"，那么包装器将调用底层的Properties对象的put\("com.horstmann.scala", "impatient"\)。
@@ -855,5 +854,16 @@ SynchronizedStack
 val scores = new scala.collection.mutable.HashMap[String, Int] with scala.collection.mutable.SynchronizedMap[String, INT]
 ```
 
+通常，最好使用java.util.concurrent包中的某个类。例如，如果多个线程共享一个映射，那么就用ConcurrentHashMap或ConcurrentSkipListMap。这些集合比简单地用同步方式执行所有方法的映射更为高效。不同线程可以并发地访问数据结构中互不相关的部分。除此之外，对应的迭代器也是“弱一致性”的，即它提供的视图是迭代器被获取时数据结构的样子。
 
+## 13.17 并行集合
+
+现如今，为了更好地利用计算机的多个处理器，支持并发通常是必需的。Scala提供的用于操纵大型集合任务的解决方案十分诱人。这些任务通常可以很自然地并行操作。如：多个线程可以并发地计算不同区块的和，然后将各部分结果汇总在一起，计算所有元素之和。coll是一个大型集合，则可以这样操作：
+
+```
+coll.par.sum                     //并发地对集合coll求和
+coll.par.count(—— % 2 == 0）  //
+```
+
+par方法产出当前集合的一个并发实现，该实现会尽可能地并发地执行集合方法。
 
