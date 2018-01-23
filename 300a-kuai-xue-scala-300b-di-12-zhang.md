@@ -293,7 +293,7 @@ def indexOf(str:String, ch: Char):Int = {
 
 ## 13.1 主要的集合特质
 
-![](/assets/Scala结合继承层级中的关键特质.png)
+![](/assets/Scala结合继承层级.png)
 
 关于集合的分类：Seq、Set、Map及其比较，可以参考博客：
 
@@ -360,20 +360,20 @@ res11: scala.collection.immutable.Set[Int] = Set(5, 1, 6, 2, 3, 4)
 
 ```
 def digits(n: Int):Set[Int] =
-	if(n < 0) digits(-n)  //小于0的取反，为非负
-	else if(n < 10) Set(n)//0~10放入集合
-	else digits( n/10 ) + ( n % 10)
+    if(n < 0) digits(-n)  //小于0的取反，为非负
+    else if(n < 10) Set(n)//0~10放入集合
+    else digits( n/10 ) + ( n % 10)
 ```
 
 这个方法从包含单个数字的集开始，每一步，添加进另外一个数字。添加某个数字并不会改变原有的集，而是构造出一个新的集。
 
 ## 13.3 序列 {#133-序列}
 
-![](http://img.blog.csdn.net/20180122205435578?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")  
+![](/assets/不可变序列.png)  
 Vector是ArrayBuffer的不可变版本：一个带有下边的序列，支持快速的随机访问。向量是以树形结构的形式实现的，每个节点可以有不超过32个子节点。对于一个有100万个元素的向量而言，只需要四层节点（10^3 ~ 2^10， 10^6 ~32^4）。访问这样的一个列表中的某个元素只需要4跳，而在链表中，同样的操作评价需要500000跳。
 
 Range表示一个整数序列，Range对昂并不存储所有值而只是起始值、结束值和增量值。可以用to和until方法构造Range对象。  
-![](http://img.blog.csdn.net/20180122210647460?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")  
+![](/assets/可变序列.png "这里写图片描述")  
 栈、队列、优先级队列都是标准的数据结构，用来实现特定算法。不过，链表有些特殊，它们和在Java、C++或数据结构中接触的可能不太一样。
 
 ## 13.4 列表 {#134-列表}
@@ -387,15 +387,15 @@ Range表示一个整数序列，Range对昂并不存储所有值而只是起始�
 
 ```
 def sum(lst: List[Int]): Int = 
-	if(lst == Nil) 0 else lst.head += sum(lst.tail)
+    if(lst == Nil) 0 else lst.head += sum(lst.tail)
 ```
 
 或者，也可以使用模式匹配：
 
 ```
 def sum(lst: List[Int]): Int = lst match {
-	case Nil => 0
-	case h :: t => h + sum(t) //h是lst.head而t 是lst.tail
+    case Nil => 0
+    case h :: t => h + sum(t) //h是lst.head而t 是lst.tail
 }
 ```
 
@@ -422,8 +422,8 @@ res17: Int = 21
 val lst = scala.collection.mutable.LinkedList(1, -2, 7, -9)
 var cur = lst 
 while( cur != Nil) {
-	if(cur.elem < 0) cur.elem = 0
-	cur = cur.next
+    if(cur.elem < 0) cur.elem = 0
+    cur = cur.next
 }
 ```
 
@@ -432,8 +432,8 @@ while( cur != Nil) {
 ```
 var cur = lst 
 while(cur != Nil && cur.next != Nil){
-	cur.next = cur.next.next
-	cur = cur.next
+    cur.next = cur.next.next
+    cur = cur.next
 }
 ```
 
@@ -484,7 +484,7 @@ digits -- primes       //等于Set(1, 9)
 
 ## 13.7 用于添加或去除元素的操作符 {#137-用于添加或去除元素的操作符}
 
-![](http://img.blog.csdn.net/20180122222359757?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbG92ZTY2NjY2NnNoZW4=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast "这里写图片描述")
+![](/assets/添加和移除元素的操作符.png "这里写图片描述")
 
 ```
 scala> Vector(1,2,3) :+ 5
@@ -496,4 +496,48 @@ res35: scala.collection.immutable.Vector[Int] = Vector(1, 1, 2, 3)
 
 注意：和其他以冒号结尾的操作符一样，+:是右结合的，是右侧操作元的方法。  
 这些操作符都返回新的集合（和原集合类型保持一致），不会修改原有的集合。而可变集合有+=操作符用于修改左侧操作元。
+
+```
+val numbers = ArrayBuffer(1, 2, 3)
+
+numbers += 5 //将5添加进numbers
+```
+
+对于不可变集合，可以在var上使用+=或 :+=，比如：
+
+```
+var numbers = Set(1, 2, 3)
+ numbers += 5 //将numbers设为不可变的集numbers + 5
+ var numberVector = Vector(1, 2, 3)
+ numberVector :+= 5 //这里没法用+=，因为向量没有+操作符
+```
+
+要移除元素，使用-操作符。可以用++操作符，一次添加多个元素。下面的++操作符将产出一个与col1类型相同，且包含col1和col2中所有元素的集合。类似地，--操作符将一次移除多个元素。
+
+```
+Set(1, 2, 3) -2 //结果为Set(1, 3)
+
+col1 ++ col2
+```
+
+提示：Scala提供了许多用于添加和移除元素的操作符。以下是一个汇总：
+
+1. 向后（:+）或向前（+:）追加元素到序列当中。
+2. 添加（+）元素到无先后次序的集合中。
+3. 用-移除元素。
+4. 用++和--来批量添加和移除元素。
+5. 对于列表，优先使用::和:::。
+6. 改值操作-有+=、++=、-=和- - =。
+7. 对于集合，个人更偏向于++、&和- -。
+8. 尽量不用++:、+=：和++=：。
+
+说明：对于列表，可以用+:而不是::来保持与其他集合操作的一致性，但有一个例外：模式匹配（case h::t）不认+:操作符。
+
+## 13.8 常用方法
+
+
+
+
+
+
 
