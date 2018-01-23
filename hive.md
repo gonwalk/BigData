@@ -2,7 +2,7 @@
 
 This file file serves as your book's preface, a great place to describe your book's content and ideas.
 
-5.2.1Hive简介
+1. Hive简介
 
 Hive是基于Hadoop的一个数据仓库工具，可以将结构化的数据文件映射为一张数据库表，并提供类SQL查询功能。本质是将SQL转换为MapReduce程序，然后利用Hadoop的Map和Reduce将大规模的数据进行分布式处理，其数据规模可以伸缩扩展到100PB+，数据形式可以是结构或非结构数据。
 
@@ -18,7 +18,7 @@ Hive与传统关系数据库比较有如下几个特点：
 
 ⑤传统关系数据库只能拓展最多20个服务器，而Hive可以拓展到上百个服务器。
 
-5.2.2Hive架构
+2. Hive架构
 
 Hive架构主要包括shell、JDBC/ODBC、WebUI、Driver、Metastore等，其架构图如下：
 
@@ -30,7 +30,7 @@ Hive的体系结构可以分为以下几个部分：
 ④Hadoop：Hive用HDFS进行存储，用MapReduce进行计算。Hive这个数据仓库的数据存储在HDFS中，业务实际分析计算是利用MapReduce执行的。  
 从上面的体系结构中可以看出，在Hadoop的HDFS与MapReduce以及MySql的辅助下，Hive其实就是利用Hive解析器将用户的SQl语句解析成对应的MapReduce程序，即Hive仅仅是一个客户端工具
 
-5.2.3 Hive的运行机制  
+3. Hive的运行机制  
 Hive的运行机制如下图所示：  
 ![](file:///C:\Users\hasee\AppData\Local\Temp\ksohtml\wpsA557.tmp.jpg)
 
