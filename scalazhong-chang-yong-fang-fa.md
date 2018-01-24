@@ -1,16 +1,18 @@
-
-
 # [scala通过mkString方法把一个集合转化为一个字符串](http://blog.csdn.net/qq_36330643/article/details/76489573)
 
 [http://blog.csdn.net/qq\_36330643/article/details/76489573](http://blog.csdn.net/qq_36330643/article/details/76489573)
 
 #### Problem {#h4_0}
 
-    如果你想要把集合元素转化为字符串，可能还会添加分隔符，前缀，后缀。
+```
+如果你想要把集合元素转化为字符串，可能还会添加分隔符，前缀，后缀。
+```
 
 #### Solution {#h4_1}
 
-    **使用mkString方法，以一定的分隔符重组集合中的内容**，下面给一个简单的例子：
+```
+**使用mkString方法，以一定的分隔符重组集合中的内容**，下面给一个简单的例子：
+```
 
 ```
 scala> val a = Array("apple", "banana", "cherry")
@@ -30,13 +32,9 @@ res3: String = apple banana cherry
 //同样可以添加一个前缀和一个后缀：
 scala> a.mkString("[", ", ", "]")
 res4: String = [apple, banana, cherry]
-
 ```
 
-
-
-**如果想把一个潜逃集合转化为一个字符串，比如嵌套数组，首先可以使用flatten方法，将多个嵌套数组（Array）展开为一个Array，然后调用mkString方法，以一定的分隔符组成字符串：**  
-
+**如果想把一个潜逃集合转化为一个字符串，比如嵌套数组，首先可以使用flatten方法，将多个嵌套数组（Array）展开为一个Array，然后调用mkString方法，以一定的分隔符组成字符串：**
 
 ```
 scala> val a = Array(Array("a", "b"), Array("c", "d"))
@@ -47,12 +45,11 @@ res5: Array[String] = Array(a, b, c, d)
 
 scala> a.flatten.mkString(",")
 res6: String = a,b,c,d
-
 ```
 
 #### Discussion {#h4_2}
 
-**    你可以调用集合的toString方法，但是它返回带有集合元素信息的集合名称**：
+**    你可以调用集合的toString方法，但是它返回带有集合元素信息的集合名称**：
 
 ```
 scala> val v = Vector("apple", "banana", "cherry")
@@ -69,16 +66,11 @@ res9: String = apple, banana, cherry
 
 scala> v.mkString("(", ", ", ")")
 res10: String = (apple, banana, cherry)
-
 ```
-
-
 
 # scala 解析json字符串
 
-
-
-scala中自带了一个scala.util.parsing.json.JSON ，然后可以通过JSON.parseFull\(jsonString:String\)来解析一个json字符串，如果解析成功的话则返回一个Some\(map: Map\[String, Any\]\)，如果解析失败的话返回None。
+**scala中自带了一个scala.util.parsing.json.JSON ，然后可以通过JSON.parseFull\(jsonString:String\)来解析一个json字符串**，如果解析成功的话则返回一个Some\(map: Map\[String, Any\]\)，如果解析失败的话返回None。
 
 所以我们可以通过模式匹配来处理解析结果：
 
@@ -116,6 +108,61 @@ scala> b match {
        case Some(map: Map[String, Any]) => println(map)
                       ^
 Map(et -> kanqiu_client_join, vtm -> 1.435898329434E12, body -> Map(gid -> , roomid -> , client -> 866963024862254, client_type -> android, room -> NBA_HOME, type -> ), time -> 1.435898329E9)
+```
+
+
+
+
+
+# Scala HashMap排序
+
+[https://segmentfault.com/q/1010000004862906](https://segmentfault.com/q/1010000004862906)
+
+WorkerInfo是一个类，包括很多属性，我现在需要根据里面的一个cpuUsage这个字段排序，cpuUsage是double类型，对idToWorker 进行排序  
+`val idToWorker = new HashMap[String, WorkerInfo]`
+
+本人找到一个类似的，但是不是很清楚sortby以及里面的case用法，所以不知道怎么与我的WorkerInfo中的double那个字段联系，因为对scala语法不是很熟悉~
+
+```
+case class WorkerInfo(id: String, cpuUsage: Double)
+
+    object SortObj extends App {
+  
+  var sortHash = new HashMap[String, WorkerInfo]
+  
+  sortHash+= ("1" -> WorkerInfo("a", 0.4), 
+      "2" -> WorkerInfo("b", 0.2), 
+      "3" -> WorkerInfo("c", 0.3))
+      
+  sortHash.toList.sortBy(_._2.cpuUsage) foreach {
+    case (key, value) => println(key + "==" + value)
+  }
+}
+```
+
+spark shell运行过程
+
+```
+scala> import scala.collection.mutable.HashMap
+import scala.collection.mutable.HashMap
+
+scala> case class WorkerInfo(id:String, cpuUsage: Double)
+defined class WorkerInfo
+
+scala> var sortHash = new HashMap[String, WorkerInfo]
+sortHash: scala.collection.mutable.HashMap[String,WorkerInfo] = Map()
+
+scala> sortHash += ("1" -> WorkerInfo("a", 0.4),
+     | "2" -> WorkerInfo("b", 0.2),
+     | "3" -> WorkerInfo("c", 0.3))
+res17: scala.collection.mutable.HashMap[String,WorkerInfo] = Map(2 -> WorkerInfo(b,0.2), 1 -> WorkerInfo(a,0.4), 3 -> WorkerInfo(c,0.3))
+
+scala> sortHash.toList.sortBy(_._2.cpuUsage) foreach {
+     | case (key, value) => println(key +  "==" + value)
+     | }
+2==WorkerInfo(b,0.2)
+3==WorkerInfo(c,0.3)
+1==WorkerInfo(a,0.4)
 
 ```
 
