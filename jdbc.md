@@ -1,6 +1,6 @@
 # 浅谈 JDBC 中 CreateStatement 和 PrepareStatement 的区别与优劣。
 
-2015年09月12日 16:02:16
+2015年09月12日 16:02:16             [http://blog.csdn.net/u011161786/article/details/48394751](http://blog.csdn.net/u011161786/article/details/48394751)
 
 本人的几点浅见，各位大大不喜勿喷。
 
@@ -90,4 +90,16 @@ rs = stmt.executeUpdate(sql);
 ```
 
 依旧是这行代码。这次我们把'or '1' = 1';drop table book;当成密码传进去。哇！又坏了！这次直接把表给删了。但是，你**如果用PrepareStatement的话就不会出现这种问题。你传入的这些数据根本不会跟原来的数据有任何的交集，也不会发生这些问题。**
+
+
+
+# statement 、prepareStatement的用法和解释 - CSDN博客
+
+[http://blog.csdn.net/qh\_java/article/details/48245945](http://blog.csdn.net/qh_java/article/details/48245945)
+
+
+
+# java攻城狮之路--复习JDBC\(PrepareStatement\) - 骄阳08 - 博客园
+
+[https://www.cnblogs.com/shellway/p/3933403.html](https://www.cnblogs.com/shellway/p/3933403.html)
 

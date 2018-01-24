@@ -10,4 +10,5 @@
 * [《快学Scala》第8章学习笔记](300a-kuai-xue-scala-300b-di-8-zhang-xue-xi-bi-ji.md)
 * [《快学Scala》第12章](300a-kuai-xue-scala-300b-di-12-zhang.md)
 * [JDBC](jdbc.md)
+* [Scala中常用方法](scalazhong-chang-yong-fang-fa.md)
 
