@@ -6,7 +6,8 @@
 
 先说下这俩到底是干啥的吧。其实这俩干的活儿都一样，就是创建了一个对象然后去通过对象调用executeQuery方法来执行sql语句。
 
-说是CreateStatement和PrepareStatement的区别，但其实说的就是Statement和PrepareStatement的区别，相信大家在网上已经看到过不少这方面的资料和博客，我在此处提几点，大家看到过的，就当重记忆，没看到就当补充~下面开始谈谈他们的区别。
+说是CreateStatement和PrepareStatement的区别，但其实说的就是Statement和PrepareStatement的区别，相信大家在网上已经看到过  
+不少这方面的资料和博客，我在此处提几点，大家看到过的，就当重记忆，没看到就当补充~下面开始谈谈他们的区别。
 
 ### 首先**：PrepareStatement跟Statement的主要区别就是把sql语句中的变量抽出来了**
 
@@ -25,12 +26,11 @@ rs = stmt.executeQuery(sql);
 而下面则是使用了PrepareStatement方法创建了pstmt对象，再通过这个对象查询的一部分语句片段。
 
 ```
-String sql = "select * from users where  username=? and userpwd=?";
+String sql = "select * from users where  username=? and userpwd=?";
 pstmt = conn.prepareStatement(sql);
 pstmt.setString(1, username);
 pstmt.setString(2, userpwd);
 rs = pstmt.executeQuery();
-
 ```
 
 相信写到这，大家很多人就能看出来了，原来**PrepareStatement跟Statement的主要区别就是把上面sql语句中的变量抽出来了。这就是我要说的第一大优点，PrepareStatement可以提高代码的可读性。**什么？你没觉得这有什么可以提高可读性的？那好，咱来看看下面这两段代码，看完你再说话。
@@ -86,10 +86,8 @@ select * from user where username = 'user' and userpwd = '' or '1' = '1';
 ```
 String sql = "select * from user where username= '"+varname+"' and userpwd='"+varpasswd+"'";  
 stmt = conn.createStatement();  
-rs = stmt.executeUpdate(sql);  
+rs = stmt.executeUpdate(sql);
 ```
 
-依旧是这行代码。这次我们把'or '1' = 1';drop table book;当成密码传进去。哇！又坏了！这次直接把表给删了。但是，你如果用PrepareStatement的话就不会出现这种问题。你传入的这些数据根本不会跟原来的数据有任何的交集，也不会发生这些问题。
-
-
+依旧是这行代码。这次我们把'or '1' = 1';drop table book;当成密码传进去。哇！又坏了！这次直接把表给删了。但是，你**如果用PrepareStatement的话就不会出现这种问题。你传入的这些数据根本不会跟原来的数据有任何的交集，也不会发生这些问题。**
 
