@@ -110,8 +110,6 @@ class Pair[T](val first: T, val second: T){
 
 ## 17.4 视图界定
 
-
-
 ## 17.5 上下文界定
 
 
