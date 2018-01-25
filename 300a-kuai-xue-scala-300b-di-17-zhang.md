@@ -62,8 +62,54 @@ res26: String = a
 
 scala> val f = getMiddle[String] _
 f: Array[String] => String = <function1>
+```
+
+## 17.3 类型变量界定
+
+有时，需要对类型变量进行限制。如有一个Pair类型，要求它的两个组件类型相同，在类中添加一个方法，产出较小的那个值。
 
 ```
+class Pair[T](val first: T, val second: T){
+    def smaller = if(first.compareTo(second) < 0) first else second  //错误
+}
+```
+
+上面的是错误的写法，因为并不知道first是否有compareTo方法。要解决这个问题，**可以添加一个上届T&lt;: Comparable\[T\]**。
+
+```
+class Pair[T <: Comparable[T]](val first: T, val second: T){
+    def smaller = if(first.compareTo(second) < 0) first else second  
+}
+```
+
+这意味着T必须是Comparable\[T\]的子类型。这样，可以实例化Pair\[java.lang.String\]，但不能实例化Pair\[java.io.File\]，因为String是Comparable\[String\]的子类型，而File并没有实现Comparable\[File\]。例如：
+
+```
+scala> class Pair[T <: Comparable[T]](val first: T, val second: T){
+     | def smaller = if(first.compareTo(second) < 0) first else second  
+     | }
+defined class Pair
+
+scala> val p = new Pair("Fred", "Brooks")
+p: Pair[String] = Pair@7446bbe5
+
+scala> println(p.smaller)
+Brooks
+
+```
+
+也可以给类型指定一个下界。如：定义一个方法，用另一个值替换对偶的第一个组件。其中对偶是不可变的，因此需要返回一个新的对偶。假定有一个Pair\[Student\]，允许使用一个Person替换第一个组件，这样做的结果将会是一个Pair\[Person\]。通常，替换进来的类型必须是原类型的超类型。这样，返回值会被正确地推断为new Pair\[R\]。
+
+```
+class Pair[T](val first: T, val second: T){
+    def replaceFirst[R >: T](newFirst: R) = new Pair[R](newFirst, second)
+    //也可以写成def replaceFirst[R >: T](newFirst: R) = new Pair(newFirst, second)
+}
+```
+
+注意：上面的如果不写上界def replaceFirst\[R\]\(newFirst: R\) = new Pair\(newFirst, second\)，上述方法也可以编译通过，但是它将返回Pair\[Any\]。
+
+## 17.4 视图界定
 
 
 
