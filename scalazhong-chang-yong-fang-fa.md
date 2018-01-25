@@ -1,4 +1,55 @@
-# [scala通过mkString方法把一个集合转化为一个字符串](http://blog.csdn.net/qq_36330643/article/details/76489573)
+# 
+
+在使用map映射/哈希表的时候出现如下错误：
+
+    scala> var scores = new scala.collection.mutable.Map[String, Double]()
+    <console>:17: error: trait Map is abstract; cannot be instantiated            
+           var scores = new scala.collection.mutable.Map[String, Double]()
+                        ^
+
+    scala> var scores = scala.collection.mutable.Map[String, Double]()
+    scores: scala.collection.mutable.Map[String,Double] = Map()
+
+    scala> map += ("Alice" -> 89.0, "Tom" -> 73.2, "Jan" -> 93.1)
+    <console>:18: error: missing argument list for method map in object functions
+    Unapplied methods are only converted to functions when a function type is expected.
+    You can make this conversion explicit by writing `map _` or `map(_)` instead of `map`.
+           map += ("Alice" -> 89.0, "Tom" -> 73.2, "Jan" -> 93.1)
+           ^
+
+    scala> map += ("Alice" -> 87.2)
+    <console>:18: error: missing argument list for method map in object functions
+    Unapplied methods are only converted to functions when a function type is expected.
+    You can make this conversion explicit by writing `map _` or `map(_)` instead of `map`.
+           map += ("Alice" -> 87.2)
+           ^
+
+    scala> var a:Map[String, Double] = Map()
+    a: Map[String,Double] = Map()
+
+    scala> a += ("Alice" -> 86.6)
+
+    scala> a += ("Alice" -> 89.0, "Tom" -> 73.2, "Jan" -> 93.1)
+
+    scala> a
+    res4: Map[String,Double] = Map(Alice -> 89.0, Tom -> 73.2, Jan -> 93.1)
+
+
+原因分析：
+
+①var scores = new scala.collection.mutable.Map\[String, Double\]\(\)   //mutable.Map\[\]是一个抽象接口（）特质，不能通过new直接实例化。
+
+②**在Scala中方法不是值，而函数是。所以一个方法不能赋值给一个val变量，而函数可以。上面将Map**方法赋值给变量map失败。根据提示，可以通过将方法转化为函数的方式实现。
+
+Scala中Method方法和Function函数的区别 - 简书
+
+[https://www.jianshu.com/p/d5ce4c683703](https://www.jianshu.com/p/d5ce4c683703)
+
+
+
+
+
+[scala通过mkString方法把一个集合转化为一个字符串](http://blog.csdn.net/qq_36330643/article/details/76489573)
 
 [http://blog.csdn.net/qq\_36330643/article/details/76489573](http://blog.csdn.net/qq_36330643/article/details/76489573)
 
@@ -110,10 +161,6 @@ scala> b match {
 Map(et -> kanqiu_client_join, vtm -> 1.435898329434E12, body -> Map(gid -> , roomid -> , client -> 866963024862254, client_type -> android, room -> NBA_HOME, type -> ), time -> 1.435898329E9)
 ```
 
-
-
-
-
 # Scala HashMap排序
 
 [https://segmentfault.com/q/1010000004862906](https://segmentfault.com/q/1010000004862906)
@@ -127,13 +174,13 @@ WorkerInfo是一个类，包括很多属性，我现在需要根据里面的一�
 case class WorkerInfo(id: String, cpuUsage: Double)
 
     object SortObj extends App {
-  
+
   var sortHash = new HashMap[String, WorkerInfo]
-  
+
   sortHash+= ("1" -> WorkerInfo("a", 0.4), 
       "2" -> WorkerInfo("b", 0.2), 
       "3" -> WorkerInfo("c", 0.3))
-      
+
   sortHash.toList.sortBy(_._2.cpuUsage) foreach {
     case (key, value) => println(key + "==" + value)
   }
@@ -163,7 +210,6 @@ scala> sortHash.toList.sortBy(_._2.cpuUsage) foreach {
 2==WorkerInfo(b,0.2)
 3==WorkerInfo(c,0.3)
 1==WorkerInfo(a,0.4)
-
 ```
 
 
