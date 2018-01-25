@@ -41,5 +41,29 @@ scala> val p2 = new Pair[Any, Any](43, "String")
 p2: Pair[Any,Any] = Pair@4b2b9e36
 ```
 
+## 17.2 泛型函数
+
+函数和方法也可以带类型参数，和泛型类一样，需要把类型参数放在方法名之后。Scala会从调用该方法使用的实际参数来推断出类型。如有必要，也可以指定类型。
+
+```
+def getMiddle[T](a: Array[T]) = a(a.length / 2)
+getMiddle(Array("Mary", "had", "a", "little", "lamb"))  //将会调用getMiddle[String]
+val f = getMiddle[String] _    //这是具体的函数，保存到f
+```
+
+shell运行过程
+
+```
+scala> def getMiddle[T](a: Array[T]) = a(a.length / 2)
+getMiddle: [T](a: Array[T])T
+
+scala> getMiddle(Array("Mary", "had", "a", "little", "lamb"))
+res26: String = a
+
+scala> val f = getMiddle[String] _
+f: Array[String] => String = <function1>
+
+```
+
 
 
