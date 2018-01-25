@@ -95,7 +95,6 @@ p: Pair[String] = Pair@7446bbe5
 
 scala> println(p.smaller)
 Brooks
-
 ```
 
 也可以给类型指定一个下界。如：定义一个方法，用另一个值替换对偶的第一个组件。其中对偶是不可变的，因此需要返回一个新的对偶。假定有一个Pair\[Student\]，允许使用一个Person替换第一个组件，这样做的结果将会是一个Pair\[Person\]。通常，替换进来的类型必须是原类型的超类型。这样，返回值会被正确地推断为new Pair\[R\]。
@@ -110,6 +109,10 @@ class Pair[T](val first: T, val second: T){
 注意：上面的如果不写上界def replaceFirst\[R\]\(newFirst: R\) = new Pair\(newFirst, second\)，上述方法也可以编译通过，但是它将返回Pair\[Any\]。
 
 ## 17.4 视图界定
+
+
+
+## 17.5 上下文界定
 
 
 
