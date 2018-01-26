@@ -46,7 +46,7 @@ p2: Pair[Any,Any] = Pair@4b2b9e36
 函数和方法也可以带类型参数，和泛型类一样，需要把类型参数放在方法名之后。Scala会从调用该方法使用的实际参数来推断出类型。如有必要，也可以指定类型。
 
 ```
-def getMiddle[T](a: Array[T]) = a(a.length / 2)
+def getMiddle[T](a: Array[T]) = a(a.length / 2)      //返回a数组下标为 a数组长度的一半 位置处的字符串（下标从0开始）
 getMiddle(Array("Mary", "had", "a", "little", "lamb"))  //将会调用getMiddle[String]
 val f = getMiddle[String] _    //这是具体的函数，保存到f
 ```
@@ -110,7 +110,7 @@ class Pair[T](val first: T, val second: T){
 
 ## 17.4 视图界定
 
-在上一节class Pair\[T 
+在上一节class Pair\[T
 
 &lt;
 
@@ -120,7 +120,7 @@ class Pair[T](val first: T, val second: T){
 
 对于上面问题的解决方法是使用“视图界定”，如下的形式：
 
-class Pair\[T 
+class Pair\[T
 
 &lt;
 
@@ -130,12 +130,7 @@ class Pair\[T
 
 %关系意味着T可以被隐式转换为Comparable\[T\]。
 
-  
-
-
 说明：使用Ordered特质会更好，它在Comparable的基础上额外提供了关系操作符：
-
-
 
 ```
 class Pair[T 
@@ -151,7 +146,7 @@ java.lang.String实现了Comparable\[String\]，但没有实现Ordered\[String\]
 
 ## 17.5 上下文界定
 
-视图界定T 
+视图界定T
 
 &lt;
 
@@ -171,12 +166,6 @@ implicit
 
 当声明一个使用隐式值的方法时需要添加一个“隐式参数”。
 
-  
-
-
-  
-
-
 ## 17.6 Manifest上下文界定
 
 要实现一个泛型的Array\[T\]，需要一个Manifest\[T\]对象。要想让基本类型的数组能正常工作，这是必需的。如果T是Int，你会希望虚拟机中对应的是一个int\[\]数组。在Scala中，Array只不过是类库提供的一个类，编译器并不对它做特殊处理。如果要编写一个泛型函数来构造泛型数组的话，需要传入这个Manifest对象。由于它是构造器的隐式参数，可以使用上下文界定
@@ -190,9 +179,6 @@ def makePair[T : Manifest](first: T, second: T) {
 ```
 
 如果调用makePair\(4, 9\)，编译器将定位到隐式的Manifest\[Int\]并实际上调用makePair\(4, 9\)\(intManifest\)。这样，该Array方法调用的就是new Array\(2\)\(intManifest\)，返回基本类型的数组int\[2\]。在shell中的运行过程：
-
-  
-
 
 ```
 scala
@@ -208,16 +194,9 @@ makePair: [T](first: T, second: T)(implicit evidence$1: Manifest[T])Unit
 scala
 >
  makePair(3,6)
-
 ```
 
 问什么搞得这么复杂？在虚拟机中，泛型相关的类型信息是被抹掉的。只会有一个makePair方法，却要处理所有类型T。
-
-  
-
-
-  
-
 
 ## 17.7 多重界定
 
@@ -244,28 +223,28 @@ T
 % String
 
 //多个上下文界定：
-T: Ordering : Manifest 
+T: Ordering : Manifest
 ```
 
 ## 17.8 类型约束
 
 类型约束提供的是另一个限定类型的方式，总共有三种关系可供使用：
 
-1.  T =:= U
-2.  T 
+1. T =:= U
+2. T 
    &lt;
    :
    &lt;
-    U
-3.  T 
+   U
+3. T 
    &lt;
    %
    &lt;
-    U
+   U
 
 这些约束将回测试T是否等于U，是否为U的子类型，或者能否被视图（隐式）转换为U。要使用这样一个约束，需要添加“隐式类型证明参数”：
 
-class Pair\[T\]\(val first: T, val second: T\) \(implicit ev: T 
+class Pair\[T\]\(val first: T, val second: T\) \(implicit ev: T
 
 &lt;
 
@@ -273,7 +252,7 @@ class Pair\[T\]\(val first: T, val second: T\) \(implicit ev: T
 
 &lt;
 
- Comparable\[T\]\)
+Comparable\[T\]\)
 
 类型约束的用途一：在泛型类中定义只能在特定条件下使用的方法。
 
@@ -317,10 +296,9 @@ scala
 >
  val friendOrNull = friendOpt.orNull
 friendOrNull: java.lang.String = Barney
-
 ```
 
-在和Java代码打交道时，orNull方法很有用，因为Java中通常习惯使用null表示缺少某值。不过这种做法并不适用于值类型，比如Int，它们并不把null看做是合法的值。因为orNull的实现带有约束Null 
+在和Java代码打交道时，orNull方法很有用，因为Java中通常习惯使用null表示缺少某值。不过这种做法并不适用于值类型，比如Int，它们并不把null看做是合法的值。因为orNull的实现带有约束Null
 
 &lt;
 
@@ -328,7 +306,7 @@ friendOrNull: java.lang.String = Barney
 
 &lt;
 
- A，仍然可以实例化Option\[Int\]，只要不对这些实例使用orNull。
+A，仍然可以实例化Option\[Int\]，只要不对这些实例使用orNull。
 
 类型约束的用途二：改进类型推断：
 
@@ -387,8 +365,6 @@ scala
 res5: (Int, Int) = (1,3)
 ```
 
-
-
 ## 17.9 型变
 
 如果Student是Person的子类，也不能使用Pair\[Student\]作为参数调用函数 def makeFriends\(p: Pair\[Person\]\)。因为尽管Student是Person的子类型，但是Pair\[Student\]和Pair\[Person\]之间没有任何关系。
@@ -416,13 +392,9 @@ trait Friend[-T] {
 
 函数在参数上式逆变的，在返回值上则是协变的。通常而言，对于某个对象消费的值使用逆变，而对于它产出的值则适用协变。如果一个对象同时消费和产出某值，则该类型应该保持不变。这通常适用于可变数据结构。如，在Scala中数组是不支持形变的。不能将一个Array\[Student\]转换为Array\[Person\]，或者反过来。
 
-
-
 ## 17.11 对象不能泛型
 
 没法给对象添加类型参数，比如可变列表。元素类型为T的列表要么为空，要么是一个头部类型为T，尾部类型类List\[T\]的节点：
-
-
 
 ```
 abstract class List[+T] {
@@ -446,34 +418,17 @@ object Empty extends List[Nothing]
 val lst = new Node(43, Empty)
 ```
 
-
-
 说明：上卖弄使用Node和Empty是为了识记，在Scala列表中，只要把它们替换成::和Nil即可。
 
 ## 17.12 类型通配符
 
-在Java中，所有泛型都是不变的。不过，可以在使用时使用通配符改变它们的类型。如，方法void makeFriend\(Pair&lt;? extends Person&gt; people\)  可以用List&lt;Student&gt;
+在Java中，所有泛型都是不变的。不过，可以在使用时使用通配符改变它们的类型。如，方法void makeFriend\(Pair&lt;? extends Person&gt; people\)  可以用List&lt;Student&gt;
 
 作为参数调用。也可以在Scala中使用通配符：
 
 ```
 def process(people:java.util.List[_ <: Person]  //这是Scala
-
 ```
 
 在Scala中，对于协变的Pair类，不需要使用通配符。也可以对逆变使用通配符。类型通配符是用来指代存在类型的“语法糖”。
-
-  
-
-
-  
-
-
-  
-
-
-  
-
-
-
 
