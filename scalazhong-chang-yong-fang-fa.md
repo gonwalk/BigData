@@ -34,7 +34,6 @@
     scala> a
     res4: Map[String,Double] = Map(Alice -> 89.0, Tom -> 73.2, Jan -> 93.1)
 
-
 原因分析：
 
 ①var scores = new scala.collection.mutable.Map\[String, Double\]\(\)   //mutable.Map\[\]是一个抽象接口（）特质，不能通过new直接实例化。
@@ -44,10 +43,6 @@
 Scala中Method方法和Function函数的区别 - 简书
 
 [https://www.jianshu.com/p/d5ce4c683703](https://www.jianshu.com/p/d5ce4c683703)
-
-
-
-
 
 [scala通过mkString方法把一个集合转化为一个字符串](http://blog.csdn.net/qq_36330643/article/details/76489573)
 
@@ -211,6 +206,61 @@ scala> sortHash.toList.sortBy(_._2.cpuUsage) foreach {
 3==WorkerInfo(c,0.3)
 1==WorkerInfo(a,0.4)
 ```
+
+
+
+# Set、Map、Tuple、队列操作实战
+
+[http://blog.csdn.net/lovehuangjiaju/article/details/46984575](http://blog.csdn.net/lovehuangjiaju/article/details/46984575)
+
+## mutable、immutable集合 {#mutableimmutable集合}
+
+scala中集合collection的官方文档：
+
+[http://www.scala-lang.org/docu/files/collections-api/collections.html](http://www.scala-lang.org/docu/files/collections-api/collections.html)
+
+**scala中的集合分为两种，一种是可变的集合，另一种是不可变的集合。可变的集合可以更改操作，包括更新、修改、添加、删除，更改操作将作用于原集合。不可变集合一旦被创建，便不能被改变，添加、删除、更新操作返回的是新的集合，老集合保持不变。**
+
+scala中所有的集合都来自于scala.collection包及其子包mutable, immutable当中。在scala中，默认使用的都是immutable集合，如果要使用mutable集合，需要在程序中引入
+
+```
+//不指定的话，创建的是immutable 集合
+scala> val mutableSet=Set(1,2,3)
+mutableSet: scala.collection.immutable.Set[Int] = Set(1, 2, 3)
+
+import scala.collection.mutable
+//由于immutable是默认导入的，因此要使用可变集合的话，需要导入上面的包，否则默认是不可变的（immutable）
+
+scala> val mutableSet = mutable.Set(1,2,3)
+mutableSet: scala.collection.mutable.Set[Int] = Set(1, 2, 3)
+```
+
+直接使用Set\(1,2,3）创建的是immutable集合，这是因为当你不引入任何包的时候，scala会默认导入以几个包：  
+![](http://img.blog.csdn.net/20150721103718870 "这里写图片描述")
+
+Predef对象中包含了Set、Map等的定义  
+![](http://img.blog.csdn.net/20150721104145380 "这里写图片描述")
+
+## scala集合类的层次结构：
+
+### scala.collection包中的集合类层次结构如下图： ![](http://img.blog.csdn.net/20150721104458018 "这里写图片描述") 
+
+These are all high-level abstract classes or traits, which generally have mutable as well as immutable implementations.
+
+
+
+#### scala.collection.immutable包中的类层次结构: ![](http://img.blog.csdn.net/20150721104916532 "这里写图片描述")
+
+#### scala.collection.mutable包中的类层次结构:
+
+![](http://img.blog.csdn.net/20150721105407236 "这里写图片描述")
+
+可变集合与不可变集合对应关系：  
+![](http://img.blog.csdn.net/20150721105649105 "这里写图片描述")
+
+## Set操作实战 {#set操作实战}
+
+1. Set（集）是一种不存在重复元素的集合，它与数学上定义的集合是对应的
 
 
 
