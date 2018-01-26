@@ -110,7 +110,370 @@ class Pair[T](val first: T, val second: T){
 
 ## 17.4 视图界定
 
+在上一节class Pair\[T 
+
+&lt;
+
+: Comparable\[Int\]\]的示例中，如果试着new一个Pair\(3, 2\)，编译器会提示Comparable\[Int\]的子类型。
+
+与java.lang.Integer包装类型不同，Scala的Int类型并没有实现Comparable。不过，RichInt实现了Comparable\[Int\]，同时还有一个从Int到RichInt的隐式转换。
+
+对于上面问题的解决方法是使用“视图界定”，如下的形式：
+
+class Pair\[T 
+
+&lt;
+
+% Comparable\[T\]\]
+
+&lt;
+
+%关系意味着T可以被隐式转换为Comparable\[T\]。
+
+  
+
+
+说明：使用Ordered特质会更好，它在Comparable的基础上额外提供了关系操作符：
+
+
+
+```
+class Pair[T 
+<
+% Ordered[T]](val first: T, val second: T){
+    def smaller = if(first 
+<
+second) first else second
+}
+```
+
+java.lang.String实现了Comparable\[String\]，但没有实现Ordered\[String\]。有了视图之后，字符串可以被隐式转换为RichString，而RichString是Ordered\[String\]的子类型。
+
 ## 17.5 上下文界定
+
+视图界定T 
+
+&lt;
+
+% V要求必须存在一个从T到V的隐式转换。上下文界定的形式为T: M，其中M是另一个泛型类型。它要求必须存在一个类型为M\[T\]的“隐式值”。
+
+```
+class Pair[T: Ordering](val first: T, val second: T){
+    def smaller(
+implicit
+ ord: Ordering[T] = if(ord.compare(first, second) 
+<
+ 0) first else second
+}
+```
+
+上面的定义中要求必须存在一个类型为Ordering\[T\]的隐式值，该隐式值可以被用在该类的方法中。
+
+当声明一个使用隐式值的方法时需要添加一个“隐式参数”。
+
+  
+
+
+  
+
+
+## 17.6 Manifest上下文界定
+
+要实现一个泛型的Array\[T\]，需要一个Manifest\[T\]对象。要想让基本类型的数组能正常工作，这是必需的。如果T是Int，你会希望虚拟机中对应的是一个int\[\]数组。在Scala中，Array只不过是类库提供的一个类，编译器并不对它做特殊处理。如果要编写一个泛型函数来构造泛型数组的话，需要传入这个Manifest对象。由于它是构造器的隐式参数，可以使用上下文界定
+
+，如下：
+
+```
+def makePair[T : Manifest](first: T, second: T) {
+    val r = new Array[T](2); r(0) = first; r(1) = second; r
+}
+```
+
+如果调用makePair\(4, 9\)，编译器将定位到隐式的Manifest\[Int\]并实际上调用makePair\(4, 9\)\(intManifest\)。这样，该Array方法调用的就是new Array\(2\)\(intManifest\)，返回基本类型的数组int\[2\]。在shell中的运行过程：
+
+  
+
+
+```
+scala
+>
+ def makePair[T: Manifest](first: T, second: T){
+     | val r = new Array[T](2);
+     | r(0) = first;
+     | r(1) = second;
+     | r
+     | }
+makePair: [T](first: T, second: T)(implicit evidence$1: Manifest[T])Unit
+
+scala
+>
+ makePair(3,6)
+
+```
+
+问什么搞得这么复杂？在虚拟机中，泛型相关的类型信息是被抹掉的。只会有一个makePair方法，却要处理所有类型T。
+
+  
+
+
+  
+
+
+## 17.7 多重界定
+
+类型变量可以同时又上届和下届。不能同时有多个上届或多个下届。不过，依然可以要求一个类型实现多个特质。类型变量可以有多个试图界定，也可以有多个上下文界定。
+
+```
+//类型变量同时有上届和下届：
+T
+>
+: Lower 
+<
+: Upper
+
+//一个类型实现多个特质：
+T
+<
+: Comparable[T] with Serializable with Cloneable
+
+//可以有多个视图界定：
+T 
+<
+% Comparable[T] 
+<
+% String
+
+//多个上下文界定：
+T: Ordering : Manifest 
+```
+
+## 17.8 类型约束
+
+类型约束提供的是另一个限定类型的方式，总共有三种关系可供使用：
+
+1.  T =:= U
+2.  T 
+   &lt;
+   :
+   &lt;
+    U
+3.  T 
+   &lt;
+   %
+   &lt;
+    U
+
+这些约束将回测试T是否等于U，是否为U的子类型，或者能否被视图（隐式）转换为U。要使用这样一个约束，需要添加“隐式类型证明参数”：
+
+class Pair\[T\]\(val first: T, val second: T\) \(implicit ev: T 
+
+&lt;
+
+:
+
+&lt;
+
+ Comparable\[T\]\)
+
+类型约束的用途一：在泛型类中定义只能在特定条件下使用的方法。
+
+```
+class Pair[T](val first: T, val second: T){
+    def smaller(implicit ev: T 
+<
+: Ordered[T]) = if(first 
+<
+ second)first else second
+}
+```
+
+另一个示例Option类的orNull方法：
+
+```
+scala
+>
+ val friends = Map("Fred" -
+>
+ "Barney", "Tom" -
+>
+ "Wilma")
+friends: scala.collection.immutable.Map[java.lang.String,java.lang.String] = Map(Fred -
+>
+ Barney, Tom -
+>
+ Wilma)
+
+scala
+>
+ val friendOpt = friends.get("Wilma")
+friendOpt: Option[java.lang.String] = None
+
+scala
+>
+ val friendOpt = friends.get("Fred")
+friendOpt: Option[java.lang.String] = Some(Barney)
+
+scala
+>
+ val friendOrNull = friendOpt.orNull
+friendOrNull: java.lang.String = Barney
+
+```
+
+在和Java代码打交道时，orNull方法很有用，因为Java中通常习惯使用null表示缺少某值。不过这种做法并不适用于值类型，比如Int，它们并不把null看做是合法的值。因为orNull的实现带有约束Null 
+
+&lt;
+
+:
+
+&lt;
+
+ A，仍然可以实例化Option\[Int\]，只要不对这些实例使用orNull。
+
+类型约束的用途二：改进类型推断：
+
+```
+
+```
+
+```
+scala
+>
+ def firstLast[A, C 
+<
+: Iterable[A]](it: C) = (it.head, it.last)
+firstLast: [A, C 
+<
+: Iterable[A]](it: C)(A, A)
+
+scala
+>
+ firstLast(List(1, 2, 3))
+
+<
+console
+>
+:9: error: inferred type arguments [Nothing,List[Int]] do not conform to method firstLast's type parameter bounds [A,C 
+<
+: Iterable[A]]
+              firstLast(List(1, 2, 3))
+              ^
+//推断出类型参数[Nothing, List[Int]]不符合[A, C
+<
+: Iterable[A]],由于类型推断期单凭List(1, 2, 3)无法判断A是什么，因为它是在同一个步骤中匹配到A和C的。
+```
+
+```
+//解决方式， 首先匹配C，然后匹配A:
+```
+
+```
+scala
+>
+ def firstLast[A, C](it: C)(implicit ev: C 
+<
+:
+<
+ Iterable[A]) = (it.head, it.last)
+firstLast: [A, C](it: C)(implicit ev: 
+<
+:
+<
+[C,Iterable[A]])(A, A)
+
+scala
+>
+ firstLast(List(1, 2, 3))
+res5: (Int, Int) = (1,3)
+```
+
+
+
+## 17.9 型变
+
+如果Student是Person的子类，也不能使用Pair\[Student\]作为参数调用函数 def makeFriends\(p: Pair\[Person\]\)。因为尽管Student是Person的子类型，但是Pair\[Student\]和Pair\[Person\]之间没有任何关系。
+
+如果要想要有这样的关系，则必须在定义Pair类时表明这一点：
+
+class Pair\[+T\]\(val first: T, val second: T\)
+
++号意味着该类型是与T协变的——即它与T按照同样方向型变。由于Student是Person的子类型，同方向型变也就意味着Pair\[Student\]同样是Pair\[Person\]的子类型。
+
+同样，-号表示逆变，即如有Student是Person的子类型，按照下面的例子则有Friend\[Student\]是Friend\[Person\]的超类型。
+
+```
+class Person extends Friend[Person]
+class Student extends Person
+
+trait Friend[-T] {
+    def befriend(someont: T)
+}
+```
+
+在一个泛型的类型声明中，可以同时使用协变和逆变这两种类型。
+
+## 17.10 协变和逆变点
+
+函数在参数上式逆变的，在返回值上则是协变的。通常而言，对于某个对象消费的值使用逆变，而对于它产出的值则适用协变。如果一个对象同时消费和产出某值，则该类型应该保持不变。这通常适用于可变数据结构。如，在Scala中数组是不支持形变的。不能将一个Array\[Student\]转换为Array\[Person\]，或者反过来。
+
+
+
+## 17.11 对象不能泛型
+
+没法给对象添加类型参数，比如可变列表。元素类型为T的列表要么为空，要么是一个头部类型为T，尾部类型类List\[T\]的节点：
+
+
+
+```
+abstract class List[+T] {
+    def isEmpty: Boolean
+    def head: T
+    def tail: List[T]
+}
+
+class Node[T](val head: T, val tail: List[T]) extends List[T]{
+    def isEmpty = false
+}
+
+class Empty[T] extends List[T] {
+    def isEmpty = true
+    def head = throw new UnsupportedOperationException
+    def tail = throw new UnsupportedOperationException
+}
+//Nothing类型是所有类型的子类型。
+object Empty extends List[Nothing]
+//调用下面的语句，将把Lsit[Nothing]转换为List[Int]
+val lst = new Node(43, Empty)
+```
+
+
+
+说明：上卖弄使用Node和Empty是为了识记，在Scala列表中，只要把它们替换成::和Nil即可。
+
+## 17.12 类型通配符
+
+在Java中，所有泛型都是不变的。不过，可以在使用时使用通配符改变它们的类型。如，方法void makeFriend\(Pair&lt;? extends Person&gt; people\)  可以用List&lt;Student&gt;
+
+作为参数调用。也可以在Scala中使用通配符：
+
+```
+def process(people:java.util.List[_ <: Person]  //这是Scala
+
+```
+
+在Scala中，对于协变的Pair类，不需要使用通配符。也可以对逆变使用通配符。类型通配符是用来指代存在类型的“语法糖”。
+
+  
+
+
+  
+
+
+  
+
+
+  
+
 
 
 
