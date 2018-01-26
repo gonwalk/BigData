@@ -432,3 +432,69 @@ def process(people:java.util.List[_ <: Person]  //这是Scala
 
 在Scala中，对于协变的Pair类，不需要使用通配符。也可以对逆变使用通配符。类型通配符是用来指代存在类型的“语法糖”。
 
+# 第18章 高级类型
+
+Scala能够提供更多的类型。
+
+本章要点概要：
+
+* 单例类型可用于方法串接和带对象参数的方法。
+* 类型投影对所有外部类的对象都包含了其内部类的实例。
+* 类型别名该类型指定一个短小的名称。
+* 结构类型等效于“鸭子类型”。
+* 存在类型为泛型类型的通配参数提供了统一形式。
+* 使用自身类型来表名某特质对混入它的类或对象的类型要求。
+* “蛋糕模式”用自身类型来实现依赖注入。
+* 高等类型带有本身为参数化类型的类型参数。
+
+## 18.1 单例类型
+
+给定任何引用v，可以得到类型v.type，它有两个可能的值：null和v。
+
+首先，看返回this的方法，通过这种方式可以把方法调用串接起来：
+
+```
+class Document {
+    def setTitle(title:String) = { ... ; this }
+    def setAuthor(author: String) = { ... ; this }
+    ...
+}
+
+class Book extends Document {
+    def addChapter(chapter:String) = { ... ; this }
+    ...
+}
+
+val book = new Book()
+book.setTitle("Scala for the Impatient").addChapter(chapter1)
+```
+
+由于setTitle返回的是this，Scala将返回类型推断为Document。但Document并没有addChapter方法。解决方法是声明setTitle的返回类型为this.type  ：
+
+```
+def setTitle(title: String): this.type = { ...; this }
+```
+
+这样，book.setTitle\("..."\)的返回类型就是book.type，而不由于book有一个addChapter方法，方法串接就能成功。
+
+要想构造下面这段像像英语语句一样的“流利接口”，set方法中的参数需要设置为单例Title类型：
+
+```
+book set Title to "Scala for the Impatient"
+//上面的代码被解析为book.set(Title).to("Scala for the Impatient")
+
+//要想使上面的代码工作set得是一个参数为单例Title的方法：
+object Title
+
+class Document {
+    private var useNextArgAs: Any = null
+    def set(obj: Title.type): this.type = { useNextArgAs = obj; this }
+    def to(arg: String) = if(useNextArgAs == Title) title = arg; else ...
+    ...
+}
+```
+
+注意set方法中的参数Title.type参数，而不能使用def set\(obj: Title\)  //这样使用时错误的
+
+因为Title指代的是单例对象，而不是类型。
+
