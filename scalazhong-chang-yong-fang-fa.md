@@ -258,13 +258,13 @@ These are all high-level abstract classes or traits, which generally have mutabl
 
 1. Set（集）是一种不存在重复元素的集合，它与数学上定义的集合是对应的
 
+# 
 
+# 
 
-
+# 
 
 # Scala里面如何使用break和continue
-
-
 
 好多从Java转过来使用Scala的人会发现Scala里面竟然没有break和contine关键字，其实不是这样的，Scala里面推荐使用函数式的风格解决break和contine的功能，而不是一个关键字。
 
