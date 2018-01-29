@@ -207,8 +207,6 @@ scala> sortHash.toList.sortBy(_._2.cpuUsage) foreach {
 1==WorkerInfo(a,0.4)
 ```
 
-
-
 # Set、Map、Tuple、队列操作实战
 
 [http://blog.csdn.net/lovehuangjiaju/article/details/46984575](http://blog.csdn.net/lovehuangjiaju/article/details/46984575)
@@ -243,11 +241,9 @@ Predef对象中包含了Set、Map等的定义
 
 ## scala集合类的层次结构：
 
-### scala.collection包中的集合类层次结构如下图： ![](http://img.blog.csdn.net/20150721104458018 "这里写图片描述") 
+### scala.collection包中的集合类层次结构如下图： ![](http://img.blog.csdn.net/20150721104458018 "这里写图片描述")
 
 These are all high-level abstract classes or traits, which generally have mutable as well as immutable implementations.
-
-
 
 #### scala.collection.immutable包中的类层次结构: ![](http://img.blog.csdn.net/20150721104916532 "这里写图片描述")
 
@@ -263,4 +259,56 @@ These are all high-level abstract classes or traits, which generally have mutabl
 1. Set（集）是一种不存在重复元素的集合，它与数学上定义的集合是对应的
 
 
+
+
+
+# Scala里面如何使用break和continue
+
+
+
+好多从Java转过来使用Scala的人会发现Scala里面竟然没有break和contine关键字，其实不是这样的，Scala里面推荐使用函数式的风格解决break和contine的功能，而不是一个关键字。
+
+如何在Scala中实现break和continue呢？
+
+\(1\)break例子
+
+```
+import scala.util.control.Breaks._
+
+breakable{  //breakable在for循环外，当break跳出breakable时，也就跳出了for循环，所以相当于Java中的break
+    for(i<-0 until 10) {
+      println(i)
+      if(i==5){
+        break()
+      }
+    }
+  }
+ // 0,1,2,3,4,5
+```
+
+\(2\)continue例子
+
+```
+import scala.util.control.Breaks._
+
+for(i<-0 until 10){
+      breakable{  //breakable在for循环里，当break跳出了breakable时，由于其还在for循环里面，所以相当于Java中的continue
+      if(i==3||i==6) {
+        break（）
+      }
+      println(i)
+      }
+    }
+    //0,1,2,4,5,7,8,9
+```
+
+需要导入的包：
+
+```
+import util.control.Breaks._
+```
+
+**上面两个例子的区别：breakable在循环内，就是continue，在循环外就是break。**
+
+从上面的例子中，我们能看到scala中使用的是函数块的风格来解决break和continue的问题，相比java的一个关键词搞定的写法，有点复杂，但符合函数式编程的风格。
 
