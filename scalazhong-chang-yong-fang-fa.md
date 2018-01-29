@@ -249,7 +249,20 @@ These are all high-level abstract classes or traits, which generally have mutabl
 
 #### scala.collection.mutable包中的类层次结构:
 
-![](http://img.blog.csdn.net/20150721105407236 "这里写图片描述")
+![](http://img.blog.csdn.net/20150721105407236 "这里写图片描述")Scala Collection\(集合\) \| 菜鸟教程
+
+[http://www.runoob.com/scala/scala-collections.html](http://www.runoob.com/scala/scala-collections.html)
+
+| 序号 | 集合及描述 |
+| :--- | :--- |
+| 1 | [Scala List\(列表\)](http://www.runoob.com/scala/scala-lists.html)                                                                                     List的特征是其元素以线性方式存储，集合中可以存放重复对象。参考[API文档](http://www.scala-lang.org/api/current/scala/collection/immutable/List.html) |
+| 2 | [Scala Set\(集合\)](http://www.runoob.com/scala/scala-sets.html)                                                                                      Set是最简单的一种集合。集合中的对象不按特定的方式排序，并且没有重复对象。参考[API文档](http://www.scala-lang.org/api/current/scala/collection/immutable/Set.html) |
+| 3 | [Scala Map\(映射\)](http://www.runoob.com/scala/scala-maps.html)                                                                                   Map 是一种把键对象和值对象映射的集合，它的每一个元素都包含一对键对象和值对象。参考[API文档](http://www.scala-lang.org/api/current/scala/collection/immutable/Map.html) |
+| 4 | [Scala 元组](http://www.runoob.com/scala/scala-tuples.html)                                                                                               元组是不同类型的值的集合 |
+| 5 | [Scala Option](http://www.runoob.com/scala/scala-options.html)                                                                                           Option\[T\] 表示有可能包含值的容器，也可能不包含值。 |
+| 6 | [Scala Iterator（迭代器）](http://www.runoob.com/scala/scala-iterators.html)                                                                  迭代器不是一个容器，更确切的说是逐一访问容器内元素的方法。 |
+
+
 
 可变集合与不可变集合对应关系：  
 ![](http://img.blog.csdn.net/20150721105649105 "这里写图片描述")
