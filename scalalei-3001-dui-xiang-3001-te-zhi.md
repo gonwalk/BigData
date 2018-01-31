@@ -264,7 +264,6 @@ object Marker {
     println(Marker getMarker("blue"))
   }
 }
-
 ```
 
 程序运行结果：
@@ -279,4 +278,94 @@ null
 ```
 
 
+
+## 2 特质——Trait
+
+Scala中的 Trait\(特质\) 相当于 Java 的接口，实际上它比接口功能还强大。与接口不同的是，它还可以定义属性和方法的实现。
+
+一般情况下Scala的类只能够继承单一父类，但是对于Trait\(特质\) 可以继承多个，从结果来看就是实现了多重继承（跟Java中的（子）类只能继承自一个父类，接口可以实现多个）。注意：Scala中，不管是类还是特质的继承都是用关键字extends，而在Java中类的继承使用关键字extends，接口的实现使用implements。
+
+Trait\(特质\) 定义的方式与类类似，但它使用的关键字是**trait**，如下所示：
+
+```
+trait Equal{
+    def isEqual(x: Any):Boolean                         //该方法未被实现
+    def isNotEqual(x: Any): Boolean = !isEqual(x)       //该方法定义有方法体，即定义了方法的实现
+```
+
+以上Trait\(特质\)由两个方法组成：**isEqual**和**isNotEqual**。isEqual 方法没有定义方法的实现，isNotEqual定义了方法的实现。**子类继承特质可以实现特质中未被实现的（抽象）方法。所以其实 Scala Trait\(特质\)更像 Java 的抽象类。**
+
+以下演示了特征的完整实例：
+
+```
+package org.sym.singleton
+
+trait Equal{
+  //注意：如果这里写成class Equal,怎会出错，因为类中存在抽象方法（未实现的方法）则需要声明为abstract的类，并在子类中实现该方法。
+  //而特质中可以存在尚未实现的方法，所以存在抽象方法的要声明为trait。
+  def isEqual(x: Any): Boolean                      //未实现的（抽象）方法
+  def isNotEqual(x: Any): Boolean = !isEqual(x)     //定义有方法体，实现了该方法
+}
+
+class Point(xc: Int, yc: Int)extends Equal {
+  var x: Int  = xc
+  var y: Int  = yc
+
+  def isEqual(obj: Any):Boolean = {
+    obj.isInstanceOf[Point] && obj.asInstanceOf[Point].x == x
+    //isInstanceOf[T]方法判断对象是否为T类型的实例;asInstanceOf[T]方法将对象类型强制转换为T类型。
+  }
+
+
+}
+object TraitTest {
+  def main(args: Array[String]): Unit = {
+    val p1 = new Point(2, 3)
+    val p2 = new Point(2, 4)
+    val p3 = new Point(3, 3)
+
+    println(p1.isNotEqual(p2))
+    println(p1.isNotEqual(p3))
+    println(p1.isNotEqual(2))
+  }
+}
+
+```
+
+执行以上代码，输出结果为：
+
+```
+false
+true
+true
+```
+
+---
+
+## 特征构造顺序
+
+特征也可以有构造器，由字段的初始化和其他特征体中的语句构成。这些语句在任何混入该特征的对象在构造时都会被执行。
+
+构造器的执行顺序：
+
+* 调用超类的构造器；
+* 特征构造器在超类构造器之后、类构造器之前执行；
+* 特征由左到右被构造；
+* 每个特征当中，父特征先被构造；
+* 如果多个特征共有一个父特征，父特征不会被重复构造
+* 所有特征被构造完毕，子类被构造。
+
+构造器的顺序是类的线性化的反向。线性化是描述某个类型的所有超类型的一种技术规格。
+
+
+
+# 3 Scala 提取器\(Extractor\)
+
+提取器是从传递给它的对象中提取出构造该对象的参数。
+
+Scala 标准库包含了一些预定义的提取器，我们会大致的了解一下它们。
+
+Scala 提取器是一个带有unapply方法的对象。unapply方法算是apply方法的反向操作：unapply接受一个对象，然后从对象中提取值，提取的值通常是用来构造该对象的值。
+
+以下实例演示了邮件地址的提取器对象：
 
