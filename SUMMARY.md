@@ -12,4 +12,5 @@
 * [JDBC](jdbc.md)
 * [Scala中常用方法](scalazhong-chang-yong-fang-fa.md)
 * [《快学Scala》第17章](300a-kuai-xue-scala-300b-di-17-zhang.md)
+* [Scala类、对象、特质](scalalei-3001-dui-xiang-3001-te-zhi.md)
 
