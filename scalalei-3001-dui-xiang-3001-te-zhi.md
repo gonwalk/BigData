@@ -28,9 +28,11 @@ object ClassTest {
 
 按照上面的方式定义类之后，工程文件结构如下图1所示：
 
-                   ![](/assets/工程文件结构1.png)                      ![](/assets/工程文件结构2.png)    
+![](/assets/目录1.jpg)                                        ![](/assets/目录2.jpg)
 
-                               图1 class放在object外对应的目录结构                                             图2 class放在object内对应的目录结构   
+          图1 
+
+
 
 类定义时，也可以将其放在object内部，这样产生的工程目录结构树如图2所示。从上面的对比中，可以发现将类定义放在object定义之外的会多出一个目录ClassTest，其下面才是定义的Object文件名，表示该源码文件中既有单独的类Class的定义，又有单独的Object的定义。而将类定义放在object里面时，只显式地在包下面包含一个Object文件。
 
@@ -38,7 +40,9 @@ object ClassTest {
 
 ![](/assets/Scala类、对象、特质.png)
 
-               图3 使用IDEA创建Class、Object、Trait
+```
+           图3 使用IDEA创建Class、Object、Trait
+```
 
 ```
 package org.sym.test
