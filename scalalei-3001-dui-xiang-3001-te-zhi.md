@@ -126,7 +126,6 @@ object ClassTest {
     pt.move(6, 9, 10)
   }
 }
-
 ```
 
 运行结果为：
@@ -144,8 +143,6 @@ Scala 使用 extends 关键字来继承一个类。在上面的示例中， Loca
 **override val xc**为重写了父类的字段，其中Location类中的xc、yc、x、y是继承（重写）自父类的字段
 
 **extends会继承父类的所有属性和方法，Scala 只允许继承一个父类。**
-
-
 
 Scala重写一个非抽象方法，必须用override修饰符。
 
@@ -192,6 +189,8 @@ org.sym.test.Employee[name = zhangsan][salary = 16688.0]
 
 **当单例对象与某个类共享同一个名称时，他被称作是这个类的伴生对象：companion object，这就意味着必须在同一个源文件里定义类和它的伴生对象。类被称为是这个单例对象的伴生类：companion class。类和它的伴生对象可以互相访问其私有成员。**
 
+### 1.4.1 单例对象示例
+
 ```
 package org.sym.singleton
 
@@ -214,9 +213,69 @@ object SingletonObject {
     }
   }
 
+}
+```
 
+程序运行结果：
+
+```
+x的坐标为： 10
+y的坐标为： 28
+```
+
+### 1.4.2  伴生对象示例
+
+```
+package org.sym.singleton
+
+//私有构造方法
+class Marker private(val color: String){
+  println("创建" + this)
+  override def toString: String = "颜色标记" + color
 }
 
+// 伴生对象，与类共享名字，可以访问类的私有属性和方法
+object Marker {
+  private val markers: Map[String, Marker] = Map(
+    "red" -> new Marker("red"),
+    "blue" -> new Marker("blue"),
+    "green" -> new Marker("green")
+  )
+
+  def apply(color: String) = (
+    if(markers.contains(color))
+      markers(color)
+    else
+      null
+  )
+
+  def getMarker(color: String) = {
+    if(markers.contains(color))
+      markers(color)
+    else
+      null
+  }
+
+  def main(args: Array[String]): Unit = {
+    println(Marker("red"))
+
+    println(Marker.getMarker("yellow"))
+    //单例对象调用，下面的调用方式省略了.()
+    println(Marker getMarker("blue"))
+  }
+}
+
+```
+
+程序运行结果：
+
+```
+创建颜色标记red
+创建颜色标记blue
+创建颜色标记green
+颜色标记red
+null
+颜色标记blue
 ```
 
 
